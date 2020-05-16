@@ -1,7 +1,7 @@
-# TypeService
+# NPM Private Package Manager
 
 ```bash
-$ lerna bootstrap
-$ npm run build
-$ ts-node packages/container/__tests__/container.test.ts
+$ npm ci # 安装依赖
+$ npm run dev # 启动开发调试
+$ npm run start # 生产环境启动
 ```
