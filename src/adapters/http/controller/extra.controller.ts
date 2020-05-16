@@ -66,6 +66,9 @@ export class HttpExtraController {
       _version = pkgname;
       _scope = chunk[0];
       _pkgname = chunk[1];
+    } else {
+      _scope = scope;
+      _pkgname = pkgname;
     }
     return this.togglePackageActions(body, {
       scope: _scope,
