@@ -1,13 +1,12 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
-import { DATABASE_NAME } from '../../app.bootstrap';
+import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
   synchronize: true,
   name: DATABASE_NAME + '_package',
 })
-@Index('scope')
-@Index('name')
+@Index(['scope', 'name'])
 export class PackageEntity {
   @PrimaryGeneratedColumn()
   public id: number;
@@ -33,7 +32,6 @@ export class PackageEntity {
 
   @Column({
     type: 'integer',
-    length: 11,
   })
   owner: UserEntity['id'];
 

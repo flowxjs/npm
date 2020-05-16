@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
-import { DATABASE_NAME } from '../../app.bootstrap';
+import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
   synchronize: true,
@@ -48,7 +48,6 @@ export class UserEntity {
 
   @Column({
     type: 'integer',
-    length: 2,
   })
   // default: 1; 0: 禁止登陆, 1: 正常登陆
   status: number;

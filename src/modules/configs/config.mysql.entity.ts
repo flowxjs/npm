@@ -1,11 +1,11 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
-import { DATABASE_NAME } from '../../app.bootstrap';
+import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
   synchronize: true,
   name: DATABASE_NAME + '_configs',
 })
-export class DependencyEntity {
+export class ConfigEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 

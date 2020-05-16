@@ -26,10 +26,11 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@flowx/container": "^1.0.2",
-    "@flowx/http": "^1.0.3",
+    "@flowx/container": "^1.0.3",
+    "@flowx/http": "^1.0.4",
     "@reactivex/rxjs": "^6.5.5",
     "inversify": "^5.0.1",
+    "mysql": "^2.18.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.5.5",
     "rxjs-compat": "^6.5.5",

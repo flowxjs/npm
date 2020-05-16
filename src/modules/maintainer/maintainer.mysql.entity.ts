@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
 import { PackageEntity } from '../package/package.mysql.entity';
-import { DATABASE_NAME } from '../../app.bootstrap';
+import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
   synchronize: true,
@@ -16,13 +16,11 @@ export class MaintainerEntity {
 
   @Column({
     type: 'integer',
-    length: 11,
   })
   pid: PackageEntity['id'];
 
   @Column({
     type: 'integer',
-    length: 11,
   })
   uid: UserEntity['id'];
 

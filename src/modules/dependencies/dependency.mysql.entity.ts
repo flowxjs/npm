@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { VersionEntity } from '../version/version.mysql.entity';
-import { DATABASE_NAME } from '../../app.bootstrap';
+import { DATABASE_NAME } from '../../app.config';
 import { PackageEntity } from '../package/package.mysql.entity';
 
 @Entity({
@@ -16,7 +16,6 @@ export class DependencyEntity {
 
   @Column({
     type: 'integer',
-    length: 11,
   })
   vid: VersionEntity['id'];
 

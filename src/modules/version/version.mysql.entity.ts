@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { PackageEntity } from '../package/package.mysql.entity';
-import { DATABASE_NAME } from '../../app.bootstrap';
+import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
   synchronize: true,
@@ -15,7 +15,6 @@ export class VersionEntity {
 
   @Column({
     type: 'integer',
-    length: 11,
   })
   pid: PackageEntity['id'];
 
@@ -79,13 +78,11 @@ export class VersionEntity {
 
   @Column({
     type: 'integer',
-    length: 11,
   })
   fileCount: number;
 
   @Column({
     type: 'integer',
-    length: 15,
   })
   unpackedSize: number;
 
