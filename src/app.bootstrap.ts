@@ -9,7 +9,10 @@ import { MYSQL_CONFIGS } from './app.config';
 import { TestController } from './modules/test/test.controller';
 
 // Adapter Http Controllers:
-import { HttpTestController } from './adapters/http/controller/test.controller';
+import { HttpUserController } from './adapters/http/controller/user.controller';
+import { HttpExtraController } from './adapters/http/controller/extra.controller';
+
+import * as bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
@@ -34,7 +37,14 @@ container.useEffect((observer: Observer<string>) => {
 container.useController(TestController);
 
 // Register Http COntrollers:
-http.useController(HttpTestController);
+http.useController(HttpUserController);
+http.useController(HttpExtraController);
+
+// http.use(bodyParser());
+// http.use(async (ctx, next) => {
+//   container.logger.info(ctx.request.path, ctx.request.method, ctx.request.body);
+//   await next();
+// });
 
 // Start All Service.
 container.bootstrap();

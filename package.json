@@ -21,6 +21,7 @@
   "homepage": "https://github.com/flowxjs/TypeService-Http-Template#readme",
   "devDependencies": {
     "@types/koa": "^2.11.3",
+    "@types/koa-bodyparser": "^4.3.0",
     "@types/node": "^13.13.5",
     "@types/npmlog": "^4.1.2",
     "typescript": "^3.8.3"
@@ -30,6 +31,7 @@
     "@flowx/http": "^1.0.4",
     "@reactivex/rxjs": "^6.5.5",
     "inversify": "^5.0.1",
+    "koa-bodyparser": "^4.3.0",
     "mysql": "^2.18.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.5.5",
