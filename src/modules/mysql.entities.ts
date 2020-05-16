@@ -43,12 +43,12 @@ export async function useMySQLEntity(container: TypeContainer, options: {
     const configs = new ConfigEntity();
     configs.close = false;
     configs.domain = DOMAIN;
-    configs.loginType = 'wx';
+    configs.loginType = 'default';
     configs.registries = '["http://registry.npmjs.org/"]';
     configs.scopes = '["@node"]';
     await connection.manager.save(configs);
     container.logger.warn('', 'configs has been added.');
   }
-  container.injection.bind('mysql').toConstantValue(connection);
+  container.injection.bind('MySQL').toConstantValue(connection);
   return connection;
 }

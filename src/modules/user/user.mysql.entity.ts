@@ -35,6 +35,12 @@ export class UserEntity {
 
   @Column({
     type: 'varchar',
+    length: 5,
+  })
+  salt: string;
+
+  @Column({
+    type: 'varchar',
     length: 40,
   })
   password: string;
@@ -48,12 +54,14 @@ export class UserEntity {
 
   @Column({
     type: 'integer',
+    default: 1,
   })
   // default: 1; 0: 禁止登陆, 1: 正常登陆
   status: number;
 
   @Column({
     type: 'bool',
+    default: false,
   })
   // 是否为管理员
   isAdmin: boolean;
