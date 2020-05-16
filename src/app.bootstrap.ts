@@ -7,6 +7,7 @@ import { MYSQL_CONFIGS } from './app.config';
 
 // Base Controllers:
 import { TestController } from './modules/test/test.controller';
+import { PackageController } from './modules/package/package.controller';
 
 // Adapter Http Controllers:
 import { HttpUserController } from './adapters/http/controller/user.controller';
@@ -35,6 +36,7 @@ container.useEffect((observer: Observer<string>) => {
 
 // Register Base Controller:
 container.useController(TestController);
+container.useController(PackageController);
 
 // Register Http COntrollers:
 http.useController(HttpUserController);
