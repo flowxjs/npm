@@ -13,3 +13,10 @@ export interface TUserLoginOutput {
   id: string,
   rev: string,
 }
+
+export interface TUserInfoOutput {
+  account: string,
+  name: string,
+  email: string,
+  avatar: string,
+}
