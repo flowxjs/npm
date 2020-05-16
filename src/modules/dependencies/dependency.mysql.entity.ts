@@ -44,6 +44,12 @@ export class DependencyEntity {
   version: VersionEntity['code'];
 
   @Column({
+    type: 'bool',
+    default: false,
+  })
+  isDeleted: boolean;
+
+  @Column({
     type: 'datetime',
   })
   ctime: Date;

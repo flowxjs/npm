@@ -59,6 +59,12 @@ export class UserEntity {
   isAdmin: boolean;
 
   @Column({
+    type: 'bool',
+    default: false,
+  })
+  isDeleted: boolean;
+
+  @Column({
     type: 'datetime',
   })
   ctime: Date;

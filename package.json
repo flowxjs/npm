@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Http template for typeservice",
   "scripts": {
-    "dev": "ts-node src/app.bootstrap.ts --port=3000",
+    "dev": "ts-node src/app.bootstrap.ts --port=3000 --allowUnsafeRegex",
     "build": "rm -rf dist && tsc -d",
     "start": "pm2 start dist/app.bootstrap.js --name=typeservice-http-template -- --port=3000",
     "stop": "pm2 stop typeservice-http-template",

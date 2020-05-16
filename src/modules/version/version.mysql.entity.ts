@@ -87,6 +87,12 @@ export class VersionEntity {
   unpackedSize: number;
 
   @Column({
+    type: 'bool',
+    default: false,
+  })
+  isDeleted: boolean;
+
+  @Column({
     type: 'datetime',
   })
   ctime: Date;

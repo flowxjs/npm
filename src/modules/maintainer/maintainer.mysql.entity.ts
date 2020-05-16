@@ -25,6 +25,12 @@ export class MaintainerEntity {
   uid: UserEntity['id'];
 
   @Column({
+    type: 'bool',
+    default: false,
+  })
+  isDeleted: boolean;
+
+  @Column({
     type: 'datetime',
   })
   ctime: Date;

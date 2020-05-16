@@ -36,6 +36,12 @@ export class PackageEntity {
   owner: UserEntity['id'];
 
   @Column({
+    type: 'bool',
+    default: false,
+  })
+  isDeleted: boolean;
+
+  @Column({
     type: 'datetime',
   })
   ctime: Date;

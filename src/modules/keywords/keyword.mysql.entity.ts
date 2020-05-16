@@ -25,6 +25,12 @@ export class KeywrodEntity {
   word: string;
 
   @Column({
+    type: 'bool',
+    default: false,
+  })
+  isDeleted: boolean;
+
+  @Column({
     type: 'datetime',
   })
   ctime: Date;
