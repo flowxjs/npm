@@ -89,13 +89,8 @@ export class HttpExtraController {
   }
 
   private async togglePackageActions(body: TPackageInput, value: { scope: string, pkgname: string, version?: string }): Promise<TPackageNormalizeOutput> {
-    if (body._attachments) {
-      this.http.logger.warn('TogglePackageActions', 'Publish: ', body);
-    } else if (body.versions && body.versions[body.version].deprecated) {
-      this.http.logger.warn('TogglePackageActions', 'deprecated: ', body);
-    } else {
-      this.http.logger.warn('TogglePackageActions', 'Update: ', body);
-    }
+    this.http.logger.warn('TogglePackageActions', 'body: ', body);
+    this.http.logger.warn('TogglePackageActions', 'value: ', value);
     return {
       ok: true,
     }
