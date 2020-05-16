@@ -1,8 +1,12 @@
-import {Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
 import { PackageEntity } from '../package/package.mysql.entity';
+import { DATABASE_NAME } from '../../app.bootstrap';
 
-@Entity()
+@Entity({
+  synchronize: true,
+  name: DATABASE_NAME + '_maintainer',
+})
 @Index(['pid', 'uid'], {
   unique: true,
 })

@@ -1,6 +1,10 @@
-import {Entity, Column, PrimaryGeneratedColumn} from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { DATABASE_NAME } from '../../app.bootstrap';
 
-@Entity()
+@Entity({
+  synchronize: true,
+  name: DATABASE_NAME + '_user',
+})
 export class UserEntity {
   @PrimaryGeneratedColumn()
   public id: number;

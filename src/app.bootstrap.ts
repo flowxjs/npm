@@ -20,3 +20,4 @@ http.useController(HttpTestController);
 container.bootstrap();
 
 export interface THttpContext extends THttpDefaultContext {};
+export const DATABASE_NAME = 'fppm';

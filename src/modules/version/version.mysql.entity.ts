@@ -1,8 +1,14 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { PackageEntity } from '../package/package.mysql.entity';
+import { DATABASE_NAME } from '../../app.bootstrap';
 
-@Entity()
-@Index([], {})
+@Entity({
+  synchronize: true,
+  name: DATABASE_NAME + '_version',
+})
+@Index(['pid', 'code'], {
+  unique: true
+})
 export class VersionEntity {
   @PrimaryGeneratedColumn()
   public id: number;

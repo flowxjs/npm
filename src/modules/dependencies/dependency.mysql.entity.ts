@@ -1,8 +1,13 @@
-import {Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { VersionEntity } from '../version/version.mysql.entity';
+import { DATABASE_NAME } from '../../app.bootstrap';
+import { PackageEntity } from '../package/package.mysql.entity';
 
-@Entity()
-@Index(['pid', 'uid'], {
+@Entity({
+  synchronize: true,
+  name: DATABASE_NAME + '_dependency',
+})
+@Index(['vid', 'pathname', 'type'], {
   unique: true,
 })
 export class DependencyEntity {
@@ -26,6 +31,18 @@ export class DependencyEntity {
   // optionalDependencies: optional
   // bundledDenpendencies: bundled
   type: 'dev' | 'peer' | 'optional' | 'bundled' | null;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
+  pathname: PackageEntity['pathname'];
+
+  @Column({
+    type: 'varchar',
+    length: 100,
+  })
+  version: VersionEntity['code'];
 
   @Column({
     type: 'datetime',
