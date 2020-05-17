@@ -6,9 +6,9 @@ import { TypeRedis } from '@flowx/redis';
 import { MYSQL_CONFIGS, DOMAIN, REDIS_CONFIGS } from './app.config';
 
 // Base Controllers:
-import { TestController } from './modules/test/test.controller';
 import { PackageController } from './modules/package/package.controller';
 import { UserController } from './modules/user/user.controller';
+import { ConfigController } from './modules/configs/config.controller';
 
 // Adapter Http Controllers:
 import { HttpUserController } from './adapters/http/controller/user.controller';
@@ -28,7 +28,7 @@ import { VersionEntity } from './modules/version/version.mysql.entity';
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
 const orm = new TypeORM(container);
-export const redis = new TypeRedis(REDIS_CONFIGS, container);
+export const redis = new TypeRedis(container, REDIS_CONFIGS);
 
 // Setup MySQL:
 const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({
@@ -48,7 +48,7 @@ const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({
     VersionEntity
   ],
   synchronize: true,
-  logging: true,
+  // logging: true,
 });
 setMySQLBinding('MySQL');
 setMySQLInitializer(async connection => {
@@ -70,9 +70,9 @@ setMySQLInitializer(async connection => {
 });
 
 // Register Base Controller:
-container.useController(TestController);
 container.useController(PackageController);
 container.useController(UserController);
+container.useController(ConfigController);
 
 // Register Http COntrollers:
 http.useController(HttpUserController);

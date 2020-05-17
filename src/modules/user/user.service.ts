@@ -1,13 +1,26 @@
 import * as randomstring from 'randomstring';
 import { injectable, inject } from 'inversify';
-import { Connection, Repository } from 'typeorm';
+import { Connection } from 'typeorm';
+import { cacheable } from '@flowx/redis';
 import { UserEntity } from './user.mysql.entity';
+import { url } from 'gravatar';
 import sha1 from 'sha1';
 
 
 @injectable()
 export class UserService {
   @inject('MySQL') connection: Connection;
+
+  /**
+   * 通过账号查询用户信息
+   * @cacheable
+   * @param account 
+   */
+  @cacheable('user:${0}')
+  userInfo(account: string) {
+    const userRepository = this.connection.getRepository(UserEntity);
+    return userRepository.createQueryBuilder().where({ account }).getOne();
+  }
 
   /**
    * 通过账号查询有效用户
@@ -62,18 +75,17 @@ export class UserService {
    * @param avatar 头像
    * @param referer 来源
    */
-  insert(account: string, password: string, nickname: string, email: string, avatar: string, referer: string, id?: number) {
+  insert(account: string, password: string, email: string, nickname?: string, avatar?: string, referer?: string) {
     const user = new UserEntity();
     user.account = account;
-    user.avatar = avatar;
+    user.avatar = avatar || url(email);
     user.ctime = new Date();
     user.email = email;
-    user.nickname = nickname;
+    user.nickname = nickname || account;
     user.salt = randomstring.generate(5);
     user.password = sha1(user.salt + password);
     user.referer = referer;
     user.utime = new Date();
-    if (id) user.id = id;
     return this.connection.getRepository(UserEntity).save(user);
   }
 
@@ -89,7 +101,10 @@ export class UserService {
   }) {
     const user = new UserEntity();
     if (data.avatar) user.avatar = data.avatar;
-    if (data.email) user.email = data.email;
+    if (data.email) {
+      user.email = data.email;
+      if (!data.avatar) data.avatar = url(data.email);
+    }
     if (data.nickname) user.nickname = data.nickname;
     user.utime = new Date();
     user.id = id;
@@ -160,5 +175,28 @@ export class UserService {
     user.id = id;
     user.status = 1;
     return this.connection.getRepository(UserEntity).save(user);
+  }
+
+  /**
+   * 检测密码是否正确
+   * @param pass 数据库加密密码
+   * @param salt 盐
+   * @param password 密码
+   */
+  checkPassword(pass: string, salt: string, password: string) {
+    return sha1(salt + password) === pass;
+  }
+
+  /**
+   * 修改密码
+   * @param id 
+   * @param password 
+   */
+  async changePassword(id: number, password: string) {
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到该用户');
+    user.salt = randomstring.generate(5);
+    user.password = sha1(user.salt + password);
+    return await this.connection.getRepository(UserEntity).save(user);
   }
 }

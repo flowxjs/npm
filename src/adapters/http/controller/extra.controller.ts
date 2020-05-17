@@ -5,6 +5,7 @@ import { THttpContext } from '../../../app.bootstrap';
 import { logException } from '../exceptions/log.exception';
 import { TPackageInput, TPackageNormalizeOutput } from './package.dto';
 import { PackageController } from '../../../modules/package/package.controller';
+import { ConfigController } from '../../../modules/configs/config.controller';
 
 /**
  * package uri mode
@@ -30,6 +31,11 @@ enum PACKAGE_URI_MODE {
 @useException(logException)
 export class HttpExtraController {
   @inject('Http') private http: Http<THttpContext>;
+
+  @Get()
+  configs() {
+    return this.http.portal(ConfigController, 'configs');
+  }
 
   @Post('/-/v1/login')
   @useMiddleware(BodyParser())
