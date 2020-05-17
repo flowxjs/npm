@@ -10,15 +10,47 @@ export class UserService {
   @inject('MySQL') connection: Connection;
 
   /**
-   * 查询用户
+   * 通过账号查询有效用户
    * @param account 账号
    */
-  findUserByAccount(account: string) {
+  findActiveUserByAccount(account: string) {
     const userRepository = this.connection.getRepository(UserEntity);
     return userRepository.createQueryBuilder().where({
       isDeleted: false,
       account,
     }).getOne();
+  }
+
+  /**
+   * 通过账号查询所有用户 无论有效与否
+   * @param account 账号
+   */
+  findAllUserByAccount(account: string) {
+    const userRepository = this.connection.getRepository(UserEntity);
+    return userRepository.createQueryBuilder().where({
+      account,
+    }).getOne();
+  }
+
+  /**
+   * 通过账号查询无效用户
+   * @param account 账号
+   */
+  findUnActiveUserByAccount(account: string) {
+    const userRepository = this.connection.getRepository(UserEntity);
+    return userRepository.createQueryBuilder().where({
+      isDeleted: true,
+      account,
+    }).getOne();
+  }
+
+  /**
+   * 通过ID查询用户
+   * @param id 
+   */
+  findUserByID(id: number) {
+    const userRepository = this.connection.getRepository(UserEntity);
+    return userRepository.createQueryBuilder().where({ id }).getOne();
   }
 
   /**
@@ -68,7 +100,7 @@ export class UserService {
    * 设置用户为管理员
    * @param id 
    */
-  setAdmin(id: number) {
+  setupAdmin(id: number) {
     const user = new UserEntity();
     user.id = id;
     user.isAdmin = true;
@@ -79,7 +111,7 @@ export class UserService {
    * 取消用户管理员
    * @param id 
    */
-  clearAdmin(id: number) {
+  cancelAdmin(id: number) {
     const user = new UserEntity();
     user.id = id;
     user.isAdmin = false;
@@ -101,7 +133,7 @@ export class UserService {
    * 找回用户
    * @param id 
    */
-  revokeuser(id: number) {
+  revokeUser(id: number) {
     const user = new UserEntity();
     user.id = id;
     user.isDeleted = false;

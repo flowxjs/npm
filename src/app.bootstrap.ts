@@ -7,6 +7,7 @@ import { MYSQL_CONFIGS, DOMAIN } from './app.config';
 // Base Controllers:
 import { TestController } from './modules/test/test.controller';
 import { PackageController } from './modules/package/package.controller';
+import { UserController } from './modules/user/user.controller';
 
 // Adapter Http Controllers:
 import { HttpUserController } from './adapters/http/controller/user.controller';
@@ -28,7 +29,7 @@ const http = new Http<THttpContext>(container);
 const orm = new TypeORM(container);
 
 // Setup MySQL:
-const [setMySQLBinding, setMySQLInitializer] = orm.useEntity({
+const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({
   type: "mysql",
   host: MYSQL_CONFIGS.host,
   port: MYSQL_CONFIGS.port,
@@ -69,6 +70,7 @@ setMySQLInitializer(async connection => {
 // Register Base Controller:
 container.useController(TestController);
 container.useController(PackageController);
+container.useController(UserController);
 
 // Register Http COntrollers:
 http.useController(HttpUserController);
