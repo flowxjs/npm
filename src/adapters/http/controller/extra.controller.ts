@@ -1,4 +1,4 @@
-import * as BodyParser from 'koa-bodyparser';
+import BodyParser from 'koa-bodyparser';
 import { inject } from 'inversify';
 import { Controller, Http, useException, Post, Body, Url, HttpCode, useMiddleware, Put, Params, Get } from '@flowx/http';
 import { THttpContext } from '../../../app.bootstrap';

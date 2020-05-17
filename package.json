@@ -32,6 +32,7 @@
   "dependencies": {
     "@flowx/container": "^1.0.3",
     "@flowx/http": "^1.0.4",
+    "@flowx/typeorm": "^1.0.0",
     "@reactivex/rxjs": "^6.5.5",
     "inversify": "^5.0.1",
     "koa-bodyparser": "^4.3.0",
