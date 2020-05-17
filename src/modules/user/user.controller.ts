@@ -6,5 +6,7 @@ import { UserService } from './user.service';
 export class UserController {
   @inject(UserService) private readonly user: UserService;
 
-  
+  use() {
+    
+  }
 }

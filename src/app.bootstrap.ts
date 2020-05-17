@@ -2,7 +2,8 @@
 import { TypeContainer } from '@flowx/container';
 import { Http, THttpDefaultContext } from '@flowx/http';
 import { TypeORM } from '@flowx/typeorm';
-import { MYSQL_CONFIGS, DOMAIN } from './app.config';
+import { TypeRedis } from '@flowx/redis';
+import { MYSQL_CONFIGS, DOMAIN, REDIS_CONFIGS } from './app.config';
 
 // Base Controllers:
 import { TestController } from './modules/test/test.controller';
@@ -27,6 +28,7 @@ import { VersionEntity } from './modules/version/version.mysql.entity';
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
 const orm = new TypeORM(container);
+export const redis = new TypeRedis(REDIS_CONFIGS, container);
 
 // Setup MySQL:
 const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({

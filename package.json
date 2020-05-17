@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Http template for typeservice",
   "scripts": {
-    "dev": "ts-node src/app.bootstrap.ts --port=3000 --allowUnsafeRegex",
+    "dev": "ts-node src/app.bootstrap.ts --port=3000",
     "build": "rm -rf dist && tsc -d",
     "start": "pm2 start dist/app.bootstrap.js --name=typeservice-http-template -- --port=3000",
     "stop": "pm2 stop typeservice-http-template",
@@ -30,8 +30,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@flowx/container": "^1.0.3",
-    "@flowx/http": "^1.0.4",
+    "@flowx/container": "^1.0.7",
+    "@flowx/http": "^1.0.8",
+    "@flowx/redis": "^1.0.2",
     "@flowx/typeorm": "^1.0.1",
     "@reactivex/rxjs": "^6.5.5",
     "inversify": "^5.0.1",

@@ -7,3 +7,7 @@ export const MYSQL_CONFIGS = {
   database: 'fppm',
 }
 export const DOMAIN = 'http://127.0.0.1:3000';
+export const REDIS_CONFIGS = {
+  host: '129.211.10.111',
+  memory: true,
+}
