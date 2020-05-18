@@ -30,8 +30,8 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@flowx/container": "^1.0.12",
-    "@flowx/http": "^1.0.13",
+    "@flowx/container": "^1.0.13",
+    "@flowx/http": "^1.0.15",
     "@flowx/redis": "^1.0.7",
     "@flowx/typeorm": "^1.0.3",
     "@reactivex/rxjs": "^6.5.5",
