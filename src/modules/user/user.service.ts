@@ -6,54 +6,30 @@ import { UserEntity } from './user.mysql.entity';
 import { url } from 'gravatar';
 import sha1 from 'sha1';
 
-
 @injectable()
 export class UserService {
   @inject('MySQL') connection: Connection;
 
   /**
-   * 通过账号查询用户信息
+   * 通过账号以及来源查询用户信息
    * @cacheable
    * @param account 
    */
-  @cacheable('user:${0}')
-  userInfo(account: string) {
+  @cacheable('user:account:${0}:${1}')
+  userInfo(account: string, referer: number) {
     const userRepository = this.connection.getRepository(UserEntity);
-    return userRepository.createQueryBuilder().where({ account }).getOne();
+    return userRepository.createQueryBuilder().where({ account, referer }).getOne();
   }
 
   /**
-   * 通过账号查询有效用户
+   * 通过账号以及来源查询有效用户
    * @param account 账号
    */
-  findActiveUserByAccount(account: string) {
+  findActiveUserByAccount(account: string, referer: number) {
     const userRepository = this.connection.getRepository(UserEntity);
     return userRepository.createQueryBuilder().where({
       isDeleted: false,
-      account,
-    }).getOne();
-  }
-
-  /**
-   * 通过账号查询所有用户 无论有效与否
-   * @param account 账号
-   */
-  findAllUserByAccount(account: string) {
-    const userRepository = this.connection.getRepository(UserEntity);
-    return userRepository.createQueryBuilder().where({
-      account,
-    }).getOne();
-  }
-
-  /**
-   * 通过账号查询无效用户
-   * @param account 账号
-   */
-  findUnActiveUserByAccount(account: string) {
-    const userRepository = this.connection.getRepository(UserEntity);
-    return userRepository.createQueryBuilder().where({
-      isDeleted: true,
-      account,
+      account, referer,
     }).getOne();
   }
 
@@ -61,29 +37,43 @@ export class UserService {
    * 通过ID查询用户
    * @param id 
    */
-  findUserByID(id: number) {
+  async findUserByID(id: number) {
     const userRepository = this.connection.getRepository(UserEntity);
-    return userRepository.createQueryBuilder().where({ id }).getOne();
+    return await userRepository.findOne(id);
   }
 
   /**
    * 新增用户数据
    * @param account 账号
-   * @param password 密码
+   * @param password 密码或者token
    * @param nickname 昵称
    * @param email 邮箱
    * @param avatar 头像
    * @param referer 来源
    */
-  insert(account: string, password: string, email: string, nickname?: string, avatar?: string, referer?: string) {
-    const user = new UserEntity();
+  async insert(
+    account: string, 
+    password: string, 
+    email: string, 
+    referer: number,
+    nickname?: string, 
+    avatar?: string,
+  ) {
+    let user = await this.userInfo(account, referer);
+    if (user) {
+      if (user.isDeleted) {
+        user = await this.revokeUser(user.id);
+      }
+    } else {
+      user = new UserEntity();
+      user.ctime = new Date();
+    }
     user.account = account;
     user.avatar = avatar || url(email);
-    user.ctime = new Date();
     user.email = email;
     user.nickname = nickname || account;
     user.salt = randomstring.generate(5);
-    user.password = sha1(user.salt + password);
+    user.password = referer === 0 ? sha1(user.salt + password) : password;
     user.referer = referer;
     user.utime = new Date();
     return this.connection.getRepository(UserEntity).save(user);
@@ -94,17 +84,19 @@ export class UserService {
    * @param id 
    * @param data 
    */
-  update(id: number, data: { 
+  async update(id: number, data: { 
     avatar?: string,
     email?: string,
     nickname?: string,
   }) {
-    const user = new UserEntity();
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到用户');
     if (data.avatar) user.avatar = data.avatar;
     if (data.email) {
       user.email = data.email;
       if (!data.avatar) data.avatar = url(data.email);
     }
+    if (data.avatar) user.avatar = data.avatar;
     if (data.nickname) user.nickname = data.nickname;
     user.utime = new Date();
     user.id = id;
@@ -115,9 +107,9 @@ export class UserService {
    * 设置用户为管理员
    * @param id 
    */
-  setupAdmin(id: number) {
-    const user = new UserEntity();
-    user.id = id;
+  async setupAdmin(id: number) {
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到用户');
     user.isAdmin = true;
     return this.connection.getRepository(UserEntity).save(user);
   }
@@ -126,9 +118,9 @@ export class UserService {
    * 取消用户管理员
    * @param id 
    */
-  cancelAdmin(id: number) {
-    const user = new UserEntity();
-    user.id = id;
+  async cancelAdmin(id: number) {
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到用户');
     user.isAdmin = false;
     return this.connection.getRepository(UserEntity).save(user);
   }
@@ -137,9 +129,9 @@ export class UserService {
    * 删除用户（非物理删除）
    * @param id 
    */
-  deleteUser(id: number) {
-    const user = new UserEntity();
-    user.id = id;
+  async deleteUser(id: number) {
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到用户');
     user.isDeleted = true;
     return this.connection.getRepository(UserEntity).save(user);
   }
@@ -148,9 +140,9 @@ export class UserService {
    * 找回用户
    * @param id 
    */
-  revokeUser(id: number) {
-    const user = new UserEntity();
-    user.id = id;
+  async revokeUser(id: number) {
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到用户');
     user.isDeleted = false;
     return this.connection.getRepository(UserEntity).save(user);
   }
@@ -159,9 +151,9 @@ export class UserService {
    * 禁止用户登陆
    * @param id 
    */
-  forbid(id: number) {
-    const user = new UserEntity();
-    user.id = id;
+  async forbid(id: number) {
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到用户');
     user.status = 0;
     return this.connection.getRepository(UserEntity).save(user);
   }
@@ -170,9 +162,9 @@ export class UserService {
    * 恢复用户登陆
    * @param id 
    */
-  unForbid(id: number) {
-    const user = new UserEntity();
-    user.id = id;
+  async unForbid(id: number) {
+    const user = await this.findUserByID(id);
+    if (!user) throw new Error('找不到用户');
     user.status = 1;
     return this.connection.getRepository(UserEntity).save(user);
   }
@@ -194,7 +186,7 @@ export class UserService {
    */
   async changePassword(id: number, password: string) {
     const user = await this.findUserByID(id);
-    if (!user) throw new Error('找不到该用户');
+    if (!user) throw new Error('找不到用户');
     user.salt = randomstring.generate(5);
     user.password = sha1(user.salt + password);
     return await this.connection.getRepository(UserEntity).save(user);

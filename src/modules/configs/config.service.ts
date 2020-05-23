@@ -8,12 +8,14 @@ import { TUpdateInput } from './config.dto';
 export class ConfigService {
   @inject('MySQL') connection: Connection;
 
-  update(options: TUpdateInput) {
+  async update(options: TUpdateInput) {
     if (!options.domain) throw new Error('domain字段缺失');
-    const configs = new ConfigEntity();
+    const configsRepository = this.connection.getRepository(ConfigEntity);
+    const configs = await configsRepository.findOne();
+    if (!configs) throw new Error('找不到配置');
     configs.close = !!options.close;
     configs.domain = options.domain;
-    configs.loginType = options.loginType || 'default';
+    configs.loginType = options.loginType;
     configs.packageCacheExpireTime = options.packageCacheExpireTime || 0;
     configs.registries = JSON.stringify(options.registries);
     configs.scopes = JSON.stringify(options.scopes);
@@ -22,15 +24,15 @@ export class ConfigService {
 
   @cacheable('configs')
   async query() {
-    const userRepository = this.connection.getRepository(ConfigEntity);
-    const configs = await userRepository.findOne();
+    const configsRepository = this.connection.getRepository(ConfigEntity);
+    const configs = await configsRepository.findOne();
     return {
       close: configs.close,
       domain: configs.domain,
       loginType: configs.loginType,
       packageCacheExpireTime: configs.packageCacheExpireTime,
-      registries: JSON.parse(configs.registries),
-      scopes: JSON.parse(configs.scopes),
+      registries: JSON.parse(configs.registries) as string[],
+      scopes: JSON.parse(configs.scopes) as string[],
     } 
   }
 }

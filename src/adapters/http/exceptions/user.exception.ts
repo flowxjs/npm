@@ -4,12 +4,12 @@ import { THttpContext } from '../../../app.bootstrap';
 import { injectable } from 'inversify';
 
 @injectable()
-export class logException implements HttpErrorException<Koa.ParameterizedContext<any,THttpContext>> {
+export class UserException implements HttpErrorException<Koa.ParameterizedContext<any,THttpContext>> {
   catch(ctx: Koa.ParameterizedContext<any, THttpContext>) {
-    ctx.logger.error('HttpException', '', ctx.error.stack || ctx.error.message);
+    ctx.logger.error('User.Service.Exception:' + ctx.status, '', ctx.error.stack || ctx.error.message);
     ctx.body = {
-      status: ctx.status,
-      message: ctx.body,
+      error: ctx.body,
+      reason: ctx.body,
     }
   }
 }

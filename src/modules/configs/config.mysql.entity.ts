@@ -10,13 +10,14 @@ export class ConfigEntity {
   public id: number;
 
   @Column({
-    type: 'bool'
+    type: 'bool',
+    default: false
   })
   // 网站是否关闭
   close: boolean;
 
   @Column({
-    type: 'text',
+    type: 'text'
   })
   // 公有源列表
   registries: string;
@@ -24,21 +25,24 @@ export class ConfigEntity {
   @Column({
     type: 'varchar',
     length: 255,
+    default: 'http://127.0.0.1:3000'
   })
   // 本服务域名
   domain: string;
 
   @Column({
     type: 'integer',
+    default: -1
   })
   // 包缓存事件
   packageCacheExpireTime: number;
 
   @Column({
-    type: 'text'
+    type: 'integer',
+    default: 0
   })
   // 登入类型
-  loginType: string;
+  loginType: number;
 
   @Column({
     type: 'text',

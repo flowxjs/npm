@@ -1,9 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
   synchronize: true,
   name: DATABASE_NAME + '_user',
+})
+@Index(['account', 'referer'], {
+  unique: true,
 })
 export class UserEntity {
   @PrimaryGeneratedColumn()
@@ -12,7 +15,6 @@ export class UserEntity {
   @Column({
     type: 'varchar',
     length: 20,
-    unique: true,
   })
   account: string;
 
@@ -46,11 +48,11 @@ export class UserEntity {
   password: string;
 
   @Column({
-    type: 'varchar',
-    length: 20,
+    type: 'integer',
+    default: 0
   })
   // 来源
-  referer: string
+  referer: number;
 
   @Column({
     type: 'integer',

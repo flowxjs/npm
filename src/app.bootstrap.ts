@@ -5,11 +5,6 @@ import { TypeORM } from '@flowx/typeorm';
 import { TypeRedis } from '@flowx/redis';
 import { MYSQL_CONFIGS, DOMAIN, REDIS_CONFIGS } from './app.config';
 
-// Base Controllers:
-import { PackageController } from './modules/package/package.controller';
-import { UserController } from './modules/user/user.controller';
-import { ConfigController } from './modules/configs/config.controller';
-
 // Adapter Http Controllers:
 import { HttpUserController } from './adapters/http/controller/user.controller';
 import { HttpExtraController } from './adapters/http/controller/extra.controller';
@@ -22,6 +17,7 @@ import { MaintainerEntity } from './modules/maintainer/maintainer.mysql.entity';
 import { PackageEntity } from './modules/package/package.mysql.entity';
 import { UserEntity } from './modules/user/user.mysql.entity';
 import { VersionEntity } from './modules/version/version.mysql.entity';
+import { ThirdpartyEntity } from './modules/thirdparty/thirdparty.mysql.entity';
 
 // import * as bodyParser from 'koa-bodyparser';
 
@@ -45,7 +41,8 @@ const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({
     MaintainerEntity,
     PackageEntity,
     UserEntity,
-    VersionEntity
+    VersionEntity,
+    ThirdpartyEntity
   ],
   synchronize: true,
   // logging: true,
@@ -59,7 +56,7 @@ setMySQLInitializer(async connection => {
     const configs = new ConfigEntity();
     configs.close = false;
     configs.domain = DOMAIN;
-    configs.loginType = 'default';
+    configs.loginType = 0;
     configs.registries = '["http://registry.npmjs.org/"]';
     configs.scopes = '["@node"]';
     await connection.manager.save(configs);
@@ -68,11 +65,6 @@ setMySQLInitializer(async connection => {
     container.logger.warn('Count', 'Skip add default configuration process.');
   }
 });
-
-// Register Base Controller:
-container.useController(PackageController);
-container.useController(UserController);
-container.useController(ConfigController);
 
 // Register Http COntrollers:
 http.useController(HttpUserController);

@@ -3,6 +3,6 @@ export interface TUpdateInput {
   registries: string[];
   domain: string;
   packageCacheExpireTime: number;
-  loginType: string;
+  loginType: number;
   scopes: string[];
 }

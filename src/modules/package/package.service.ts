@@ -1,5 +1,5 @@
-import * as request from 'request';
-import * as url from 'url';
+import request from 'request';
+import url from 'url';
 import { injectable } from 'inversify';
 
 @injectable()
