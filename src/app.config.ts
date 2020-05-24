@@ -12,6 +12,7 @@ interface TPKG {
   },
   redis: {
     host: string,
+    port: number,
     memory: boolean,
   }
 }
@@ -38,6 +39,7 @@ export const MYSQL_CONFIGS = {
 export const DOMAIN = pkg.configs.domain;
 export const REDIS_CONFIGS = {
   host: pkg.configs.redis.host,
+  port: pkg.configs.redis.port,
   memory: pkg.configs.redis.memory,
   keyPrefix: DATABASE_NAME + ':',
 }

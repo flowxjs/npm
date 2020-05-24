@@ -51,14 +51,15 @@
   "configs": {
     "domain": "http://127.0.0.1:3000",
     "mysql": {
-      "host": "129.211.10.111",
+      "host": "127.0.0.1",
       "port": 3306,
       "username": "root",
-      "password": "FDNsyj211314",
+      "password": "fdnsyj211314",
       "database": "fppm"
     },
     "redis": {
-      "host": "129.211.10.111",
+      "host": "127.0.0.1",
+      "port": 6379,
       "memory": true
     }
   }
