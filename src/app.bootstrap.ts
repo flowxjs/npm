@@ -1,71 +1,33 @@
 // Base imports:
-import { TypeContainer, TypeServiceInjection } from '@flowx/container';
+import { TypeContainer } from '@flowx/container';
 import { Http, THttpDefaultContext } from '@flowx/http';
 import { TypeORM } from '@flowx/typeorm';
-import { TypeRedis } from '@flowx/redis';
-import { MYSQL_CONFIGS, DOMAIN, REDIS_CONFIGS } from './app.config';
+import { SetupMySQL } from './app.mysql';
+import { SetupRedis } from './app.redis';
+import { WebsiteClosed } from './adapters/http/middlewares/close';
 
 // Adapter Http Controllers:
 import { HttpUserController } from './adapters/http/controller/user.controller';
 import { HttpExtraController } from './adapters/http/controller/extra.controller';
 import { HttpTestController } from './adapters/http/controller/test.controller';
 
-// ORM Modules:
-import { ConfigEntity } from './modules/configs/config.mysql.entity';
-import { DependencyEntity } from './modules/dependencies/dependency.mysql.entity';
-import { KeywrodEntity } from './modules/keywords/keyword.mysql.entity';
-import { MaintainerEntity } from './modules/maintainer/maintainer.mysql.entity';
-import { PackageEntity } from './modules/package/package.mysql.entity';
+// orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
-import { VersionEntity } from './modules/version/version.mysql.entity';
-import { ThirdpartyEntity } from './modules/thirdparty/thirdparty.mysql.entity';
 
 // import bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
 const orm = new TypeORM(container);
-export const redis = new TypeRedis(container, REDIS_CONFIGS);
 
-// Setup MySQL:
-const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({
-  type: "mysql",
-  host: MYSQL_CONFIGS.host,
-  port: MYSQL_CONFIGS.port,
-  username: MYSQL_CONFIGS.username,
-  password: MYSQL_CONFIGS.password,
-  database: MYSQL_CONFIGS.database,
-  entities: [
-    ConfigEntity,
-    DependencyEntity,
-    KeywrodEntity,
-    MaintainerEntity,
-    PackageEntity,
-    UserEntity,
-    VersionEntity,
-    ThirdpartyEntity
-  ],
-  synchronize: true,
-  // logging: true,
-});
-setMySQLBinding('MySQL');
-setMySQLInitializer(async connection => {
-  const count = await connection.manager.count(ConfigEntity);
-  container.logger.warn('Count', 'configs table has %d data chunk.', count);
-  if (count === 0) {
-    const time = Date.now();
-    const configs = new ConfigEntity();
-    configs.close = false;
-    configs.domain = DOMAIN;
-    configs.loginType = 0;
-    configs.registries = '["http://registry.npmjs.org/"]';
-    configs.scopes = '["@node"]';
-    await connection.manager.save(configs);
-    container.logger.warn('', 'Default configuration added in %dms.', Date.now() - time);
-  } else {
-    container.logger.warn('Count', 'Skip add default configuration process.');
-  }
-});
+// closed middleware.
+http.use(WebsiteClosed);
+
+// 安装 Redis
+SetupRedis(container);
+
+// 安装 MySQL
+SetupMySQL(container, orm);
 
 // Register Http COntrollers:
 http.useController(HttpUserController);
