@@ -1,4 +1,4 @@
-import * as randomstring from 'randomstring';
+import randomstring from 'randomstring';
 import { injectable, inject } from 'inversify';
 import { Connection } from 'typeorm';
 import { cacheable } from '@flowx/redis';
@@ -73,7 +73,7 @@ export class UserService {
     user.email = email;
     user.nickname = nickname || account;
     user.salt = randomstring.generate(5);
-    user.password = referer === 0 ? sha1(user.salt + password) : password;
+    user.password = referer === 0 ? sha1(user.salt + password) : sha1(user.salt + password + referer);
     user.referer = referer;
     user.utime = new Date();
     return this.connection.getRepository(UserEntity).save(user);
@@ -189,6 +189,19 @@ export class UserService {
     if (!user) throw new Error('找不到用户');
     user.salt = randomstring.generate(5);
     user.password = sha1(user.salt + password);
+    return await this.connection.getRepository(UserEntity).save(user);
+  }
+
+  findActiveUserByToken(token: string) {
+    const userRepository = this.connection.getRepository(UserEntity);
+    return userRepository.createQueryBuilder().where({
+      password: token,
+      isDeleted: false,
+    }).andWhere('referer>0').getOne();
+  }
+
+  async logout(id: number) {
+    const user = await this.changePassword(id, randomstring.generate(10));
     return await this.connection.getRepository(UserEntity).save(user);
   }
 }

@@ -1,5 +1,5 @@
 // Base imports:
-import { TypeContainer } from '@flowx/container';
+import { TypeContainer, TypeServiceInjection } from '@flowx/container';
 import { Http, THttpDefaultContext } from '@flowx/http';
 import { TypeORM } from '@flowx/typeorm';
 import { TypeRedis } from '@flowx/redis';
@@ -20,7 +20,7 @@ import { UserEntity } from './modules/user/user.mysql.entity';
 import { VersionEntity } from './modules/version/version.mysql.entity';
 import { ThirdpartyEntity } from './modules/thirdparty/thirdparty.mysql.entity';
 
-// import * as bodyParser from 'koa-bodyparser';
+// import bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
@@ -81,4 +81,10 @@ http.useController(HttpTestController);
 // Start All Service.
 container.bootstrap();
 
-export interface THttpContext extends THttpDefaultContext {};
+export interface THttpContext extends THttpDefaultContext {
+  authType?: string,
+  authToken?: string,
+  authUsername?: string,
+  authPassword?: string,
+  user?: UserEntity,
+};

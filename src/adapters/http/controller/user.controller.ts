@@ -5,16 +5,23 @@ import { TUserLoginInput, TUserLoginOutput, TUserInfoOutput } from './user.dto';
 import { UserService } from '../../../modules/user/user.service';
 import { AccountPipe } from '../pipes/account';
 import { buildCache } from '@flowx/redis';
+import { Authorization } from '../middlewares/authorize';
+import { IsLogined } from '../guards/is-logined';
+import { IsAdmin } from '../guards/is-admin';
 import { 
   Controller, 
   HttpCode, 
   useException, 
-  Put, Get, Delete, Post,
+  Put, Get, Delete, Post, Headers,
   Body, Params,
   useMiddleware,
   BadRequestException,
-  ParseIntegerPipe
+  ParseIntegerPipe,
+  useGuard,
+  Ctx
 } from '@flowx/http';
+import { ParameterizedContext } from 'koa';
+import { THttpContext } from '../../../app.bootstrap';
 
 @Controller('/-/user')
 @useException(UserException)
@@ -29,8 +36,8 @@ export class HttpUserController {
   @useMiddleware(BodyParser())
   @Put('/org.couchdb.user:account')
   // shell: npm login --registry=http://127.0.0.1:3000
-  async AddUser(@Body() body: TUserLoginInput): Promise<TUserLoginOutput> {
-    console.log('in local adduser')
+  async AddUser(@Body() body: TUserLoginInput, @Headers() headers: any): Promise<TUserLoginOutput> {
+    console.log('in local adduser', headers)
     if (!body.email) return;
     const rev = Buffer.from(body.name + ':' + body.password, 'utf8').toString('base64');
     const user = await this.UserService.userInfo(body.name, 0);
@@ -75,6 +82,9 @@ export class HttpUserController {
    */
   @HttpCode(200)
   @Delete('/org.couchdb.user:id(\\d+)')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useGuard(IsAdmin)
   async DeleteUser(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const user = await this.UserService.deleteUser(id);
     await buildCache(UserService, 'userInfo', user.account, user.referer);
@@ -90,6 +100,9 @@ export class HttpUserController {
    */
   @HttpCode(200)
   @Post('/org.couchdb.user:id(\\d+)')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useGuard(IsAdmin)
   async RevokeUser(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const user = await this.UserService.revokeUser(id);
     await buildCache(UserService, 'userInfo', user.account, user.referer);
@@ -105,6 +118,9 @@ export class HttpUserController {
    */
   @HttpCode(200)
   @Put('/org.couchdb.user:id(\\d+)/admin')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useGuard(IsAdmin)
   async SetUserAdmin(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const user = await this.UserService.setupAdmin(id);
     await buildCache(UserService, 'userInfo', user.account, user.referer);
@@ -120,6 +136,9 @@ export class HttpUserController {
    */
   @HttpCode(200)
   @Delete('/org.couchdb.user:id(\\d+)/admin')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useGuard(IsAdmin)
   async CancelUserAdmin(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const user = await this.UserService.cancelAdmin(id);
     await buildCache(UserService, 'userInfo', user.account, user.referer);
@@ -135,6 +154,9 @@ export class HttpUserController {
    */
   @HttpCode(200)
   @Put('/org.couchdb.user:id(\\d+)/forbid')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useGuard(IsAdmin)
   async setUserForbid(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const user = await this.UserService.forbid(id);
     await buildCache(UserService, 'userInfo', user.account, user.referer);
@@ -150,6 +172,9 @@ export class HttpUserController {
    */
   @HttpCode(200)
   @Delete('/org.couchdb.user:id(\\d+)/forbid')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useGuard(IsAdmin)
   async cancelUserForbid(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const user = await this.UserService.unForbid(id);
     await buildCache(UserService, 'userInfo', user.account, user.referer);
@@ -157,5 +182,14 @@ export class HttpUserController {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
     }
+  }
+
+  @Delete('/token/:token')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @HttpCode(201)
+  async Logout(@Ctx() ctx:ParameterizedContext<any, THttpContext>) {
+    const user = await this.UserService.logout(ctx.user.id);
+    await buildCache(UserService, 'userInfo', user.account, user.referer);
   }
 }

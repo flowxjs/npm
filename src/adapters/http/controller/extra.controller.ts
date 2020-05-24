@@ -19,8 +19,11 @@ import {
   useMiddleware, 
   BadRequestException, 
   HttpCode,
-  Redirect
+  Redirect,
+  useGuard
 } from '@flowx/http';
+import { Authorization } from '../middlewares/authorize';
+import { IsLogined } from '../guards/is-logined';
 
 /**
  * package uri mode
@@ -148,7 +151,7 @@ export class HttpExtraController {
       // 删除登录时候的redis缓存标识位
       await this.redis.del(`thirdparty:${session}`);
       // 插入数据库
-      await this.UserService.insert(
+      const user = await this.UserService.insert(
         res.content.account, 
         res.content.token,
         res.content.email,
@@ -158,16 +161,40 @@ export class HttpExtraController {
       );
       // 更新缓存
       await buildCache(UserService, 'userInfo', res.content.account, configs.loginType);
+      res.content.token = user.password;
     }
     ctx.status = res.status;
     return res.content || {};
   }
 
+  /**
+   * 根据token查看当前用户账号
+   * @param ctx 
+   */
+  @Get('/-/whoami')
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  Whoami(@Ctx() ctx: ParameterizedContext<any, THttpContext>) {
+    return {
+      username: ctx.user.account,
+    }
+  }
+
+  /**
+   * 获取当前模块
+   * /:pkgname
+   * @param pkgname 
+   */
   @Get(PACKAGE_URI_MODE.NO_SCOPE)
   async getPackageNoScope(@Params('pkgname') pkgname: string) {
     return this.getPackage({ pkgname });
   }
 
+  /**
+   * 获取当前模块
+   * /:pkgname/:version
+   * @param pkgname 
+   */
   @Get(PACKAGE_URI_MODE.NO_SCOPE_WITH_VESION)
   async getPackageNoScopeWithVersion(
     @Params('pkgname') pkgname: string,
@@ -176,6 +203,11 @@ export class HttpExtraController {
     return this.getPackage({ pkgname, version });
   }
 
+  /**
+   * 获取当前模块
+   * /@:scope
+   * @param pkgname 
+   */
   @Get(PACKAGE_URI_MODE.SCOPE_COMPOSITION)
   async getPackageComposition(@Params('scope') scope: string) {
     const value = decodeURIComponent(scope);
@@ -183,6 +215,12 @@ export class HttpExtraController {
     return this.getPackage({ scope: chunk[0], pkgname: chunk[1] });
   }
 
+  /**
+   * 获取当前模块
+   * /@:scope/:pkgname
+   * /@:scope/:version
+   * @param pkgname 
+   */
   @Get(PACKAGE_URI_MODE.SCOPE_NORMALIZE)
   async getPackageCompositionOrWithVersion(
     @Params('scope') scope: string,
@@ -206,6 +244,11 @@ export class HttpExtraController {
     });
   }
 
+  /**
+   * 获取当前模块
+   * /@:scope/:pkgname/:version
+   * @param pkgname 
+   */
   @Get(PACKAGE_URI_MODE.SCOPE_NORMALIZE_WITH_VERSION)
   async getPackageWithVersion(
     @Params('scope') scope: string,
@@ -214,7 +257,6 @@ export class HttpExtraController {
   ) {
     return this.getPackage({ scope, pkgname, version });
   }
-
 
   @Put(PACKAGE_URI_MODE.SCOPE_COMPOSITION)
   @useMiddleware(BodyParser())
