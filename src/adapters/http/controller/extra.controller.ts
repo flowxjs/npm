@@ -6,7 +6,7 @@ import { inject } from 'inversify';
 import { TypeRedis, buildCache } from '@flowx/redis';
 import { THttpContext } from '../../../app.bootstrap';
 import { HttpException } from '../exceptions/http.exception';
-import { TPackageInput, TPackageNormalizeOutput } from './package.dto';
+import { TPackageInput, TPackageNormalizeOutput } from '../dto/package.dto';
 import { ConfigService } from '../../../modules/configs/config.service';
 import { ThirdPartyService } from '../../../modules/thirdparty/thirdparty.service';
 import { UserService } from '../../../modules/user/user.service';

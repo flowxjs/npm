@@ -1,7 +1,7 @@
 import BodyParser from 'koa-bodyparser';
 import { inject } from 'inversify';
 import { UserException } from '../exceptions/user.exception';
-import { TUserLoginInput, TUserLoginOutput, TUserInfoOutput } from './user.dto';
+import { TUserLoginInput, TUserLoginOutput, TUserInfoOutput } from '../dto/user.dto';
 import { UserService } from '../../../modules/user/user.service';
 import { AccountPipe } from '../pipes/account';
 import { buildCache } from '@flowx/redis';
@@ -37,7 +37,6 @@ export class HttpUserController {
   @Put('/org.couchdb.user:account')
   // shell: npm login --registry=http://127.0.0.1:3000
   async AddUser(@Body() body: TUserLoginInput, @Headers() headers: any): Promise<TUserLoginOutput> {
-    console.log('in local adduser', headers)
     if (!body.email) return;
     const rev = Buffer.from(body.name + ':' + body.password, 'utf8').toString('base64');
     const user = await this.UserService.userInfo(body.name, 0);
@@ -61,12 +60,16 @@ export class HttpUserController {
   /**
    * 获取用户信息
    * @param account 
+   * @param referer
    */
   @HttpCode(201)
-  @Get('/org.couchdb.user:account')
-  // http: http://0.0.0.0:3000/-/user/org.couchdb.user:evio
-  async UserInfo(@Params('account', AccountPipe) account: string): Promise<TUserInfoOutput> {
-    const user = await this.UserService.userInfo(account, 0);
+  @Get('/:referer(\\d+)/org.couchdb.user:account')
+  // http: http://0.0.0.0:3000/-/user/0/org.couchdb.user:evio
+  async UserInfo(
+    @Params('account', AccountPipe) account: string,
+    @Params('referer', ParseIntegerPipe) referer: number = 0
+  ): Promise<TUserInfoOutput> {
+    const user = await this.UserService.userInfo(account, referer);
     if (!user) throw new BadRequestException('找不到用户');
     return {
       account,
@@ -184,6 +187,10 @@ export class HttpUserController {
     }
   }
 
+  /**
+   * 退出登录
+   * @param ctx 
+   */
   @Delete('/token/:token')
   @useMiddleware(Authorization)
   @useGuard(IsLogined)

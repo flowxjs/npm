@@ -8,8 +8,7 @@ export class HttpTestController {
   }
 
   @Get('/check')
-  async Done() {
-    await new Promise(resolve => setTimeout(resolve, 5000));
+  Done() {
     return { 
       account: 'evio-account', 
       avatar: '//www.gravatar.com/avatar/6bab7c91a03d47fe1aa5b5b6b6f8cc55', 
