@@ -95,7 +95,7 @@ export class HttpExtraController {
    */
   @Get('/-/v1/weblogin/authorize')
   @HttpCode(200)
-  @Redirect('http://baidu.com')
+  @Redirect()
   // http://127.0.0.1:3000/-/v1/weblogin/authorize
   async WebLoginAuthorize(
     @Query('session') session: string,
