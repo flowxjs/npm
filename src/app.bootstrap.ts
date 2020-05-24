@@ -8,6 +8,7 @@ import { MYSQL_CONFIGS, DOMAIN, REDIS_CONFIGS } from './app.config';
 // Adapter Http Controllers:
 import { HttpUserController } from './adapters/http/controller/user.controller';
 import { HttpExtraController } from './adapters/http/controller/extra.controller';
+import { HttpTestController } from './adapters/http/controller/test.controller';
 
 // ORM Modules:
 import { ConfigEntity } from './modules/configs/config.mysql.entity';
@@ -69,6 +70,7 @@ setMySQLInitializer(async connection => {
 // Register Http COntrollers:
 http.useController(HttpUserController);
 http.useController(HttpExtraController);
+http.useController(HttpTestController);
 
 // http.use(bodyParser());
 // http.use(async (ctx, next) => {

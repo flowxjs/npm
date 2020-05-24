@@ -18,7 +18,8 @@ import {
   Post, Body, Put, Params, Get, Ctx, Headers, Query,
   useMiddleware, 
   BadRequestException, 
-  NotFoundException 
+  HttpCode,
+  Redirect
 } from '@flowx/http';
 
 /**
@@ -75,9 +76,11 @@ export class HttpExtraController {
       return 'Using default login type.';
     }
     if (!session) throw new BadRequestException('请使用NPM的命令行工具登录');
+    const thirdparty = await this.ThirdPartyService.query(configs.loginType);
+    await this.redis.set(`thirdparty:${session}`, body.hostname, thirdparty.loginTimeExpire);
     return {
-      doneUrl: url.resolve(configs.domain, `/-/v1/weblogin/authorize?session=${session}&hostname=${body.hostname}`),
-      loginUrl: url.resolve(configs.domain, `/-/v1/weblogin/check?session=${session}`),
+      loginUrl: url.resolve(configs.domain, `/-/v1/weblogin/authorize?session=${session}&hostname=${encodeURIComponent(body.hostname)}`),
+      doneUrl: url.resolve(configs.domain, `/-/v1/weblogin/check?session=${session}`),
     }
   }
  
@@ -88,16 +91,19 @@ export class HttpExtraController {
    * 可以直接返回HTML或者跳转
    */
   @Get('/-/v1/weblogin/authorize')
+  @HttpCode(200)
+  @Redirect('http://baidu.com')
+  // http://127.0.0.1:3000/-/v1/weblogin/authorize
   async WebLoginAuthorize(
-    @Ctx() ctx: ParameterizedContext<THttpContext>,
     @Query('session') session: string,
     @Query('hostname') hostname: string
   ) {
     const configs = await this.ConfigService.query();
     if (!configs.loginType) throw new BadRequestException('系统不允许使用外部授权');
     const thirdparty = await this.ThirdPartyService.query(configs.loginType);
-    await this.redis.set(`thirdparty:${session}`, hostname, thirdparty.loginTimeExpire);
-    ctx.redirect(thirdparty.loginUrl.replace('{session}', session));
+    return {
+      url: thirdparty.loginUrl.replace('{session}', session),
+    }
   }
 
   /**
@@ -113,7 +119,7 @@ export class HttpExtraController {
     @Query('session') session: string
   ) {
     const redisData = await this.redis.get<string>(`thirdparty:${session}`);
-    if (!redisData) throw new NotFoundException('找不到请求结果或者请求已过期');
+    if (!redisData) throw new BadRequestException('找不到请求结果或者请求已过期');
     const configs = await this.ConfigService.query();
     if (!configs.loginType) throw new BadRequestException('系统不允许使用外部授权');
     const thirdparty = await this.ThirdPartyService.query(configs.loginType);
@@ -121,16 +127,19 @@ export class HttpExtraController {
       status: number, 
       content?: { account: string, avatar: string, email: string, token: string, nickname?: string } 
     }>((resolve, reject) => {
-      request.get(thirdparty.doneUrl.replace('{session}', session), (err: Error, response: request.Response, body: string) => {
-        if (err) return reject(err);
-        if (!body) return resolve({ status: 202 });
-        try{ resolve({
-          status: 200,
-          content: JSON.parse(body),
-        }); } catch(e) {
-          reject(e);
+      request.get(
+        thirdparty.doneUrl.replace('{session}', session), 
+        (err: Error, response: request.Response, body: string) => {
+          if (err) return reject(err);
+          if (!body) return resolve({ status: 202 });
+          try{ resolve({
+            status: 200,
+            content: JSON.parse(body),
+          }); } catch(e) {
+            reject(e);
+          }
         }
-      })
+      )
     })
     // 当202状态下，需要添加一个`retry-after`头部变量
     // 用于延迟尝试获得结果
