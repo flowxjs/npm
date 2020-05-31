@@ -1,0 +1,42 @@
+{
+  "_id": "virtual-router",
+  "name": "virtual-router",
+  "description": "",
+  "dist-tags": {
+    "latest": "1.0.0"
+  },
+  "versions": {
+    "1.0.0": {
+      "name": "virtual-router",
+      "version": "1.0.0",
+      "description": "",
+      "main": "index.js",
+      "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+      },
+      "keywords": [],
+      "author": "",
+      "license": "MIT",
+      "devDependencies": {
+        "typescript": "^3.8.3"
+      },
+      "readme": "ERROR: No README data found!",
+      "_id": "virtual-router@1.0.0",
+      "_nodeVersion": "12.16.1",
+      "_npmVersion": "6.14.4",
+      "dist": {
+        "integrity": "sha512-X0GN2PMzWHS1MTHkeaHiUt1y7/sLMdbxStwb30ser+x1eqe/M684F75A7YrfBjhm/mzG/bC0LUkWOzmpRrZQ6Q==",
+        "shasum": "be32691301d0df3bea6048f7bbd7d335813db153",
+        "tarball": "http://127.0.0.1:3000/virtual-router/-/virtual-router-1.0.0.tgz"
+      }
+    }
+  },
+  "readme": "ERROR: No README data found!",
+  "_attachments": {
+    "virtual-router-1.0.0.tgz": {
+      "content_type": "application/octet-stream",
+      "data": "H4sIAAAAAAAAE+1YW28aRxTOs3/FBEUBEneNiy8VlESObTWO7CZysNSK0GS8O8DEy8xqZhds2fz3nrkts8vSi+I6quR5gT3323dmIcHhFR6TrcR8Bl8lZ0/u+bRarb2dHVRFV2en3UZP2rt7re3tvb0WyMGX3Z09+LzvQKpOJlMsIJRvtWNyQfnn/+TcbiBUY3hKah1Um1GRZjj+QfAsJaK2qXgzIiTlTLG3g1bQMtSIyFDQJLUcQ5xiqp8oi8g1TJKhGkEJDOULCCmRqRIj4YSjT7VjIbjoIMaRYiCZkJCOKIk+1dDz54hc0xRt10Bzoa1dkZs5F5EyNxhqCs7SCRfLKGIaEiZ1PmcnfRfu7IgkBOJiISV+LDeJzUTJ/9EOfgra2tnGYuN7t+ZBjsX9VipDzkZ0/F8sgL/B/34F/vf3f3zE/0Mcjf+QTxMaE/FeA9qDxyWW5ELEChuBRhLQYDccUY23iAKQLVXyTITkDCfAGOFYEkuH4o6Jgbtk5DqXn/Ioi8k6+jmRPM7cdmE8Io6P45jP38mSF5kKGiovqcgcjfELlkkSnfIQJIs8cp0QQaeEpTg+IiEXOOWiJCNUDDPyDvBw5oL1TUhDPWGwKnlS1p3yGTnkU+WiHGxML9X2yhOHQvJpbbjpbSTN12k7suDcld10wqxDysI4i1RoA1sJEWr2cGPxj/rv8A96W8phkMp7n7G/xv/uzv72Cv7bu+1H/D/EASRwkSLCsinq//7h+KOG/sf+Qf/kUM3Rh4PzgzP15eygf/j288HpqXo4P/7l+DdNvTjtn3y2QouNDarQMMIhQf1fYZoOJzSOBGHa6ADu7g5SUGXjYQcpfpWOXUJaJRFkRK9fOy3lMbQmgVhwoXhX8Oah6CoP9SzImCjtczI+vk6UL5tuGGMpdQTWDZ3hlFh3zlvX4zivJae+iHJufftkHYMLAd0hlsWxz5+DpRCLSJs0VbFSqLcinGABr2pq2b0RPJ0QsU4BLnNIIgthrTW4KWinWN4eul007Z5PJ1QGJnmgW3lHuLtD9a16dynoauGJ5iQQvl14sqoonpx+BBldpcBMmSeta+WJm+e7ZdGggwjBfYJifEnihotfkDQTzE9j0BoW5GG8L+F+G7nGlVXfX34lYRrAhMpGIclmEBM2Tie+tdO1znVYuSiOTFcbarGaTjml2OUA2dZtceWcpuEEaWldKScM7YR7uFC0Tq6tpZdBddGlIPiqu6qoQdpZpWssV9A9aC+91Tv19R7yFdEx1SiMtg21uzT1omwqIiOcxanSFnyOGJkj/eOg8eWCXTE+Z9qCBdqz27xOiy9NY0JXHSE6QsUmDrTPIXra66EMfgSMKCNedVfc9QFZBFGJcAzxRTcImwUAYE0nNoH6s1v9ZVEvea/0bJM3EhqcxozC4frZ6+azsgJ80DPjXmYYnREXqKEUKQi2uvDxs3Xo5hnRly+9AdMhhbZRFSnIAR0OXaNUgTU7sM3s6clYmkOVAWuVbi5S6P3CL6GJhsK1oJZez0DitUNQ71XuRwXylGmqgaEfYT4fuu/6vcqiZ520EYTk/Uy0map0VmlqU1VK+1kWKl45BNpGaQj+fUuRK2DRntfOZmXxnZauQ7e84vLlBq/HJG0Ub8zq+8R8qb5Aqi4Lv1OGu7VlBCaYRfAzRdVLofWtfWw0V68Qd2OgNasoZ3u5udRgPURvbsxCTXA6Kafnb/y8rEoQbp3ltaOsmPXv29hEMBgTHpVtzrAowq8chG1FDr3iMlN/lVhIlq869Aq11GQarivhwIRhdqKqRrNZQJVyGUj1X0qjtWl1TSPttDU16n2GP3q2RJpdifDKTQM7ZKhCLVFf1IcPlvtK4DZgS1fS5u+h7/3i/ngez+N5PN94/gSZVhQTABoAAA==",
+      "length": 1423
+    }
+  }
+}

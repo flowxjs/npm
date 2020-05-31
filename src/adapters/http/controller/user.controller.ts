@@ -1,3 +1,4 @@
+import Koa from 'koa';
 import BodyParser from 'koa-bodyparser';
 import { inject } from 'inversify';
 import { UserException } from '../exceptions/user.exception';
@@ -27,6 +28,7 @@ import { THttpContext } from '../../../app.bootstrap';
 @useException(UserException)
 export class HttpUserController {
   @inject(UserService) private UserService: UserService;
+  @inject(IsLogined) private IsLogined: IsLogined<Koa.ParameterizedContext<any, THttpContext>>;
 
   /**
    * 添加用户或者用户登录
@@ -36,12 +38,16 @@ export class HttpUserController {
   @useMiddleware(BodyParser())
   @Put('/org.couchdb.user:account')
   // shell: npm login --registry=http://127.0.0.1:3000
-  async AddUser(@Body() body: TUserLoginInput, @Headers() headers: any): Promise<TUserLoginOutput> {
+  async AddUser(
+    @Body() body: TUserLoginInput, 
+    @Ctx() ctx: Koa.ParameterizedContext<any, THttpContext>
+  ): Promise<TUserLoginOutput> {
     if (!body.email) return;
     const rev = Buffer.from(body.name + ':' + body.password, 'utf8').toString('base64');
     const user = await this.UserService.userInfo(body.name, 0);
     if (user) {
       if (!user.status) throw new BadRequestException('用户禁止登录');
+      if (!(await this.IsLogined.canActivate(ctx))) throw new BadRequestException('用户账号无效或者密码错误');
       if (!this.UserService.checkPassword(user.password, user.salt, body.password)) throw new BadRequestException('密码错误，无法登录。');
       if (user.isDeleted) await this.UserService.revokeUser(user.id);
       await this.UserService.changePassword(user.id, body.password);

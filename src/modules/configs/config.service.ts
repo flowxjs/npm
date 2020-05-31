@@ -19,7 +19,7 @@ export class ConfigService {
     configs.packageCacheExpireTime = options.packageCacheExpireTime || 0;
     configs.registries = JSON.stringify(options.registries);
     configs.scopes = JSON.stringify(options.scopes);
-    return this.connection.getRepository(ConfigEntity).save(configs);
+    return await this.connection.getRepository(ConfigEntity).save(configs);
   }
 
   @cacheable('configs')

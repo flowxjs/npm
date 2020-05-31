@@ -77,14 +77,14 @@ export class VersionEntity {
   scripts: string;
 
   @Column({
-    type: 'integer',
+    type: 'text',
   })
-  fileCount: number;
+  integrity: string;
 
   @Column({
-    type: 'integer',
+    type: 'text',
   })
-  unpackedSize: number;
+  attachment_data: string;
 
   @Column({
     type: 'bool',

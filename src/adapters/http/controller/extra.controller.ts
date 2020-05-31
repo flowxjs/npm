@@ -11,6 +11,7 @@ import { ConfigService } from '../../../modules/configs/config.service';
 import { ThirdPartyService } from '../../../modules/thirdparty/thirdparty.service';
 import { UserService } from '../../../modules/user/user.service';
 import { PackageService } from '../../../modules/package/package.service';
+import { HttpPackageController } from './package.controller';
 import { 
   Controller, 
   Http, 
@@ -54,6 +55,7 @@ export class HttpExtraController {
   @inject(ThirdPartyService) private ThirdPartyService: ThirdPartyService;
   @inject(UserService) private UserService: UserService;
   @inject(PackageService) private PackageService: PackageService;
+  @inject(HttpPackageController) HttpPackageController: HttpPackageController;
 
   @Get()
   configs() {
@@ -260,13 +262,15 @@ export class HttpExtraController {
 
   @Put(PACKAGE_URI_MODE.SCOPE_COMPOSITION)
   @useMiddleware(BodyParser())
+  @useGuard(IsLogined)
   async packageActionComposition(
     @Params('scope') scope: string,
-    @Body() body: TPackageInput
+    @Body() body: TPackageInput,
+    @Ctx() ctx: THttpContext
   ): Promise<TPackageNormalizeOutput> {
     const value = decodeURIComponent(scope);
     const chunk = value.split('/');
-    return this.togglePackageActions(body, {
+    return this.togglePackageActions(ctx, body, {
       scope: chunk[0],
       pkgname: chunk[1],
     });
@@ -274,10 +278,12 @@ export class HttpExtraController {
 
   @Put(PACKAGE_URI_MODE.SCOPE_NORMALIZE)
   @useMiddleware(BodyParser())
+  @useGuard(IsLogined)
   async packageActionCompositionOrWithVersion(
     @Params('scope') scope: string,
     @Params('pkgname') pkgname: string,
-    @Body() body: TPackageInput
+    @Body() body: TPackageInput,
+    @Ctx() ctx: THttpContext
   ) {
     let _scope: string, _pkgname: string, _version: string;
     if (/^\d+\.\d+\.\d+(\-.+)?$/.test(pkgname)) {
@@ -290,7 +296,7 @@ export class HttpExtraController {
       _scope = scope;
       _pkgname = pkgname;
     }
-    return this.togglePackageActions(body, {
+    return this.togglePackageActions(ctx, body, {
       scope: _scope,
       pkgname: _pkgname,
       version: _version,
@@ -299,18 +305,20 @@ export class HttpExtraController {
 
   @Put(PACKAGE_URI_MODE.SCOPE_NORMALIZE_WITH_VERSION)
   @useMiddleware(BodyParser())
+  @useGuard(IsLogined)
   async packageActionWithVersion(
     @Params('scope') scope: string,
     @Params('pkgname') pkgname: string,
     @Params('version') version: string,
-    @Body() body: TPackageInput
+    @Body() body: TPackageInput,
+    @Ctx() ctx: THttpContext
   ) {
-    return this.togglePackageActions(body, { scope, pkgname, version });
+    return this.togglePackageActions(ctx, body, { scope, pkgname, version });
   }
 
-  private async togglePackageActions(body: TPackageInput, value: { scope: string, pkgname: string, version?: string }): Promise<TPackageNormalizeOutput> {
-    this.http.logger.warn('TogglePackageActions', 'body: ', body);
-    this.http.logger.warn('TogglePackageActions', 'value: ', value);
+  private async togglePackageActions(ctx: THttpContext, body: TPackageInput, value: { scope: string, pkgname: string, version?: string }): Promise<TPackageNormalizeOutput> {
+    const res = await this.HttpPackageController.publish(ctx.user, value, body);
+    console.log(res);
     return {
       ok: true,
     }

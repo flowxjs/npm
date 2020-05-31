@@ -9,7 +9,7 @@ import { DATABASE_NAME } from '../../app.config';
 @Index(['vid', 'word'], {
   unique: true,
 })
-export class KeywrodEntity {
+export class KeywordEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 

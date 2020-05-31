@@ -7,6 +7,7 @@ import { DATABASE_NAME } from '../../app.config';
   name: DATABASE_NAME + '_package',
 })
 @Index(['scope', 'name'])
+@Index(['pathname'])
 export class PackageEntity {
   @PrimaryGeneratedColumn()
   public id: number;

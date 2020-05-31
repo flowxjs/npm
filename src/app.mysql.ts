@@ -5,7 +5,7 @@ import { MYSQL_CONFIGS, DOMAIN, REDIS_CONFIGS } from './app.config';
 // ORM Modules:
 import { ConfigEntity } from './modules/configs/config.mysql.entity';
 import { DependencyEntity } from './modules/dependencies/dependency.mysql.entity';
-import { KeywrodEntity } from './modules/keywords/keyword.mysql.entity';
+import { KeywordEntity } from './modules/keywords/keyword.mysql.entity';
 import { MaintainerEntity } from './modules/maintainer/maintainer.mysql.entity';
 import { PackageEntity } from './modules/package/package.mysql.entity';
 import { UserEntity } from './modules/user/user.mysql.entity';
@@ -23,7 +23,7 @@ export function SetupMySQL(container: TypeContainer, orm: TypeORM) {
     entities: [
       ConfigEntity,
       DependencyEntity,
-      KeywrodEntity,
+      KeywordEntity,
       MaintainerEntity,
       PackageEntity,
       UserEntity,

@@ -10,11 +10,12 @@ import { WebsiteClosed } from './adapters/http/middlewares/close';
 import { HttpUserController } from './adapters/http/controller/user.controller';
 import { HttpExtraController } from './adapters/http/controller/extra.controller';
 import { HttpTestController } from './adapters/http/controller/test.controller';
+import { HttpPackageController } from './adapters/http/controller/package.controller';
 
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
 
-// import bodyParser from 'koa-bodyparser';
+import bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
@@ -33,12 +34,14 @@ SetupMySQL(container, orm);
 http.useController(HttpUserController);
 http.useController(HttpExtraController);
 http.useController(HttpTestController);
+http.useController(HttpPackageController);
 
-// http.use(bodyParser());
-// http.use(async (ctx, next) => {
-//   container.logger.info(ctx.request.path, ctx.request.method, ctx.request.body);
-//   await next();
-// });
+http.use(bodyParser());
+http.use(async (ctx, next) => {
+  container.logger.info(ctx.request.path, ctx.request.method, ctx.request.body);
+  require('fs').writeFileSync(require('path').resolve(process.cwd(), 'b.log'), JSON.stringify(ctx.request.body, null, 2), 'utf8');
+  await next();
+});
 
 // Start All Service.
 container.bootstrap();

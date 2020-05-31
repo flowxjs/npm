@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { ensureDirSync } from 'fs-extra';
 
 interface TPKG {
+  nfs: string,
   domain: string,
   mysql: {
     host: string,
@@ -27,7 +29,7 @@ const pkg: { configs: TPKG } = require(pkgfile);
 if (!pkg.configs) {
   throw new Error('pkg missing configs.');
 }
-
+export const NFS = path.resolve(process.cwd(), pkg.configs.nfs);
 export const DATABASE_NAME = pkg.configs.mysql.database;
 export const MYSQL_CONFIGS = {
   host: pkg.configs.mysql.host,
@@ -43,3 +45,5 @@ export const REDIS_CONFIGS = {
   memory: pkg.configs.redis.memory,
   keyPrefix: DATABASE_NAME + ':',
 }
+
+ensureDirSync(NFS);

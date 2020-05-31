@@ -7,7 +7,7 @@ import { PackageEntity } from '../package/package.mysql.entity';
   synchronize: true,
   name: DATABASE_NAME + '_dependency',
 })
-@Index(['vid', 'pathname', 'type'], {
+@Index(['vid', 'pathname', 'version','type'], {
   unique: true,
 })
 export class DependencyEntity {
