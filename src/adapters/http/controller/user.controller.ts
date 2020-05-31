@@ -48,7 +48,7 @@ export class HttpUserController {
     const user = await this.UserService.userInfo(body.name, 0);
     if (user) {
       if (!user.status) throw new BadRequestException('用户禁止登录');
-      if (ctx.authUsername && ctx.authPassword) {
+      if (ctx.authPassword) {
         if (!this.UserService.checkPassword(user.password, user.salt, ctx.authPassword)) {
           throw new BadRequestException('密码错误，无法登录。');
         }
@@ -59,7 +59,7 @@ export class HttpUserController {
     } else {
       await this.UserService.insert(body.name, body.password, body.email, 0, body.name, undefined);
     }
-    await buildCache(UserService, 'userInfo', body.name);
+    await buildCache(UserService, 'userInfo', body.name, 0);
     return {
       ok: true,
       id: body._id,
