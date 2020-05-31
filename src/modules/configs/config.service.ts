@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { Connection } from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 import { cacheable } from '@flowx/redis';
 ;import { ConfigEntity } from './config.mysql.entity';
 import { TUpdateInput } from './config.dto';
@@ -8,10 +8,12 @@ import { TUpdateInput } from './config.dto';
 export class ConfigService {
   @inject('MySQL') connection: Connection;
 
-  async update(options: TUpdateInput) {
+  async update(
+    repository: Repository<ConfigEntity>,
+    options: TUpdateInput
+  ) {
     if (!options.domain) throw new Error('domain字段缺失');
-    const configsRepository = this.connection.getRepository(ConfigEntity);
-    const configs = await configsRepository.findOne();
+    const configs = await repository.findOne();
     if (!configs) throw new Error('找不到配置');
     configs.close = !!options.close;
     configs.domain = options.domain;
@@ -19,13 +21,13 @@ export class ConfigService {
     configs.packageCacheExpireTime = options.packageCacheExpireTime || 0;
     configs.registries = JSON.stringify(options.registries);
     configs.scopes = JSON.stringify(options.scopes);
-    return await this.connection.getRepository(ConfigEntity).save(configs);
+    return await repository.save(configs);
   }
 
   @cacheable('configs')
-  async query() {
-    const configsRepository = this.connection.getRepository(ConfigEntity);
-    const configs = await configsRepository.findOne();
+  async query(repository: Repository<ConfigEntity>) {
+    const configs = await repository.findOne();
+    if (!configs) throw new Error('找不到配置数据');
     return {
       close: configs.close,
       domain: configs.domain,

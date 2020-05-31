@@ -4,9 +4,11 @@ import { injectable, inject } from 'inversify';
 import { THttpContext } from '../../../app.bootstrap';
 import { UserService } from '../../../modules/user/user.service';
 import { UserEntity } from '../../../modules/user/user.mysql.entity';
+import { Connection } from 'typeorm';
 
 @injectable()
 export class IsLogined<T extends Koa.ParameterizedContext<any, THttpContext>> implements CanActivate<T> {
+  @inject('MySQL') private connection: Connection;
   @inject(UserService) private UserService: UserService;
 
   async canActivate(ctx: T) {
@@ -25,13 +27,15 @@ export class IsLogined<T extends Koa.ParameterizedContext<any, THttpContext>> im
   }
 
   private async checkBasicAuthorize(username: string, password: string): Promise<[boolean, UserEntity?]> {
-    const user = await this.UserService.findActiveUserByAccount(username, 0);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.findActiveUserByAccount(userRepository, username, 0);
     if (!user) return [false];
     return [this.UserService.checkPassword(user.password, user.salt, password), user];
   }
 
   private async checkBearerAuthorize(token: string): Promise<[boolean, UserEntity?]> {
-    const user = await this.UserService.findActiveUserByToken(token);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.findActiveUserByToken(userRepository, token);
     if (!user) return [false];
     return [true, user];
   }

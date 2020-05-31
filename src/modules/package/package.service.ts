@@ -1,7 +1,7 @@
 import request from 'request';
 import url from 'url';
 import { injectable, inject } from 'inversify';
-import { Connection } from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 import { UserEntity } from '../user/user.mysql.entity';
 import { PackageEntity } from './package.mysql.entity';
 
@@ -64,27 +64,33 @@ export class PackageService {
    * 通过pathname查询
    * @param pathname 
    */
-  public findByPathname(pathname: string) {
-    const packageRepository = this.connection.getRepository(PackageEntity);
-    return packageRepository.createQueryBuilder().where({ pathname }).getOne();
+  public findByPathname(
+    repository: Repository<PackageEntity>, 
+    pathname: string
+  ) {
+    return repository.createQueryBuilder().where({ pathname }).getOne();
   }
 
   /**
    * 通过ID查询
    * @param id 
    */
-  public findById(id: number) {
-    const packageRepository = this.connection.getRepository(PackageEntity);
-    return packageRepository.findOne(id);
+  public findById(
+    repository: Repository<PackageEntity>, 
+    id: number
+  ) {
+    return repository.findOne(id);
   }
 
   /**
    * 通过scope查询
    * @param scope 
    */
-  public findByScope(scope: string) {
-    const packageRepository = this.connection.getRepository(PackageEntity);
-    return packageRepository.createQueryBuilder().where({ scope }).getMany();
+  public findByScope(
+    repository: Repository<PackageEntity>, 
+    scope: string
+  ) {
+    return repository.createQueryBuilder().where({ scope }).getMany();
   }
 
   /**
@@ -92,9 +98,12 @@ export class PackageService {
    * @param scope 
    * @param name 
    */
-  public findByScopeAndName(scope: string, name: string) {
-    const packageRepository = this.connection.getRepository(PackageEntity);
-    return packageRepository.createQueryBuilder().where({ scope, name }).getOne();
+  public findByScopeAndName(
+    repository: Repository<PackageEntity>, 
+    scope: string, 
+    name: string
+  ) {
+    return repository.createQueryBuilder().where({ scope, name }).getOne();
   }
 
   /**
@@ -102,35 +111,37 @@ export class PackageService {
    * @param pathname 
    * @param uid 
    */
-  public async insert(pathname: string, uid: UserEntity['id']) {
-    let pkg = await this.findByPathname(pathname);
+  public async insert(
+    repository: Repository<PackageEntity>, 
+    pathname: string, 
+    uid: UserEntity['id']
+  ) {
+    let pkg = await this.findByPathname(repository, pathname);
     if (pkg) {
-      if (pkg.isDeleted) {
-        pkg.isDeleted = false;
-        return await this.connection.getRepository(PackageEntity).save(pkg);
-      }
-      return pkg;
+      pkg.utime = new Date();
+      return await repository.save(pkg);
     }
     const { scope, namespace } = this.formatScopeAndNamespace(pathname);
     pkg = new PackageEntity();
     pkg.ctime = new Date();
-    pkg.isDeleted = false;
     pkg.name = namespace;
-    pkg.owner = uid;
+    pkg.userId = uid;
     pkg.pathname = pathname;
     pkg.scope = scope;
     pkg.utime = new Date();
-    return await this.connection.getRepository(PackageEntity).save(pkg);
+    return await repository.save(pkg);
   }
 
   /**
    * 删除模块
    * @param id 
    */
-  public async delete(id: number) {
-    const pkg = await this.findById(id);
+  public async delete(
+    repository: Repository<PackageEntity>, 
+    id: number
+  ) {
+    const pkg = await this.findById(repository, id);
     if (!pkg) throw new Error('找不到模块');
-    pkg.isDeleted = true;
-    return await this.connection.getRepository(PackageEntity).save(pkg);
+    return await repository.delete(pkg);
   }
 }

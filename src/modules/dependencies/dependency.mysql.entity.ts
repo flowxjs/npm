@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn } from "typeorm";
 import { VersionEntity } from '../version/version.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { PackageEntity } from '../package/package.mysql.entity';
@@ -7,7 +7,7 @@ import { PackageEntity } from '../package/package.mysql.entity';
   synchronize: true,
   name: DATABASE_NAME + '_dependency',
 })
-@Index(['vid', 'pathname', 'version','type'], {
+@Index(['vid', 'pathname', 'value', 'type'], {
   unique: true,
 })
 export class DependencyEntity {
@@ -18,6 +18,10 @@ export class DependencyEntity {
     type: 'integer',
   })
   vid: VersionEntity['id'];
+
+  @OneToOne(type => VersionEntity, version => version.id)
+  @JoinColumn({ name: 'vid' })
+  Version: VersionEntity;
 
   @Column({
     type: 'varchar',
@@ -41,13 +45,7 @@ export class DependencyEntity {
     type: 'varchar',
     length: 100,
   })
-  version: VersionEntity['code'];
-
-  @Column({
-    type: 'bool',
-    default: false,
-  })
-  isDeleted: boolean;
+  value: VersionEntity['code'];
 
   @Column({
     type: 'datetime',

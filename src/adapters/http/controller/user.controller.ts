@@ -5,7 +5,7 @@ import { UserException } from '../exceptions/user.exception';
 import { TUserLoginInput, TUserLoginOutput, TUserInfoOutput } from '../dto/user.dto';
 import { UserService } from '../../../modules/user/user.service';
 import { AccountPipe } from '../pipes/account';
-import { buildCache } from '@flowx/redis';
+import { buildCache, deleteCache } from '@flowx/redis';
 import { Authorization } from '../middlewares/authorize';
 import { IsLogined } from '../guards/is-logined';
 import { IsAdmin } from '../guards/is-admin';
@@ -23,12 +23,14 @@ import {
 } from '@flowx/http';
 import { ParameterizedContext } from 'koa';
 import { THttpContext } from '../../../app.bootstrap';
+import { Connection } from 'typeorm';
+import { UserEntity } from '../../../modules/user/user.mysql.entity';
 
 @Controller('/-/user')
 @useException(UserException)
 export class HttpUserController {
+  @inject('MySQL') private connection: Connection;
   @inject(UserService) private UserService: UserService;
-  @inject(IsLogined) private IsLogined: IsLogined<Koa.ParameterizedContext<any, THttpContext>>;
 
   /**
    * 添加用户或者用户登录
@@ -44,8 +46,8 @@ export class HttpUserController {
     @Ctx() ctx: Koa.ParameterizedContext<any, THttpContext>
   ): Promise<TUserLoginOutput> {
     if (!body.email) return;
-    const rev = Buffer.from(body.name + ':' + body.password, 'utf8').toString('base64');
-    const user = await this.UserService.userInfo(body.name, 0);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.userInfo(userRepository, body.name, 0);
     if (user) {
       if (!user.status) throw new BadRequestException('用户禁止登录');
       if (ctx.authPassword) {
@@ -53,17 +55,15 @@ export class HttpUserController {
           throw new BadRequestException('密码错误，无法登录。');
         }
       }
-      if (user.isDeleted) await this.UserService.revokeUser(user.id);
-      await this.UserService.changePassword(user.id, body.password);
-      await this.UserService.update(user.id, { avatar: undefined, email: body.email, nickname: body.name });
+      await this.UserService.changePassword(userRepository, user.id, body.password);
+      await this.UserService.update(userRepository, user.id, { avatar: undefined, email: body.email, nickname: body.name });
     } else {
-      await this.UserService.insert(body.name, body.password, body.email, 0, body.name, undefined);
+      await this.UserService.insert(userRepository, body.name, body.password, body.email, 0, body.name, undefined);
     }
-    await buildCache(UserService, 'userInfo', body.name, 0);
+    await buildCache(UserService, 'userInfo', userRepository, body.name, 0);
     return {
       ok: true,
       id: body._id,
-      rev
     }
   }
 
@@ -79,7 +79,8 @@ export class HttpUserController {
     @Params('account', AccountPipe) account: string,
     @Params('referer', ParseIntegerPipe) referer: number = 0
   ): Promise<TUserInfoOutput> {
-    const user = await this.UserService.userInfo(account, referer);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.userInfo(userRepository, account, referer);
     if (!user) throw new BadRequestException('找不到用户');
     return {
       account,
@@ -99,29 +100,14 @@ export class HttpUserController {
   @useGuard(IsLogined)
   @useGuard(IsAdmin)
   async DeleteUser(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
-    const user = await this.UserService.deleteUser(id);
-    await buildCache(UserService, 'userInfo', user.account, user.referer);
-    return {
-      ok: true,
-      id: 'org.couchdb.user:' + user.account,
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.deleteUser(userRepository, id);
+    if (user.affected) {
+      await deleteCache(UserService, 'userInfo', userRepository, user.raw.account, user.raw.referer);
     }
-  }
-
-  /**
-   * 恢复用户
-   * @param id 
-   */
-  @HttpCode(200)
-  @Post('/org.couchdb.user:id(\\d+)')
-  @useMiddleware(Authorization)
-  @useGuard(IsLogined)
-  @useGuard(IsAdmin)
-  async RevokeUser(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
-    const user = await this.UserService.revokeUser(id);
-    await buildCache(UserService, 'userInfo', user.account, user.referer);
     return {
       ok: true,
-      id: 'org.couchdb.user:' + user.account,
+      id: 'org.couchdb.user:' + user.raw.account,
     }
   }
 
@@ -135,8 +121,9 @@ export class HttpUserController {
   @useGuard(IsLogined)
   @useGuard(IsAdmin)
   async SetUserAdmin(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
-    const user = await this.UserService.setupAdmin(id);
-    await buildCache(UserService, 'userInfo', user.account, user.referer);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.setupAdmin(userRepository, id);
+    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -153,8 +140,9 @@ export class HttpUserController {
   @useGuard(IsLogined)
   @useGuard(IsAdmin)
   async CancelUserAdmin(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
-    const user = await this.UserService.cancelAdmin(id);
-    await buildCache(UserService, 'userInfo', user.account, user.referer);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.cancelAdmin(userRepository, id);
+    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -171,8 +159,9 @@ export class HttpUserController {
   @useGuard(IsLogined)
   @useGuard(IsAdmin)
   async setUserForbid(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
-    const user = await this.UserService.forbid(id);
-    await buildCache(UserService, 'userInfo', user.account, user.referer);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.forbid(userRepository, id);
+    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -189,8 +178,9 @@ export class HttpUserController {
   @useGuard(IsLogined)
   @useGuard(IsAdmin)
   async cancelUserForbid(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
-    const user = await this.UserService.unForbid(id);
-    await buildCache(UserService, 'userInfo', user.account, user.referer);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.unForbid(userRepository, id);
+    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -206,7 +196,8 @@ export class HttpUserController {
   @useGuard(IsLogined)
   @HttpCode(201)
   async Logout(@Ctx() ctx:ParameterizedContext<any, THttpContext>) {
-    const user = await this.UserService.logout(ctx.user.id);
-    await buildCache(UserService, 'userInfo', user.account, user.referer);
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.logout(userRepository, ctx.user.id);
+    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
   }
 }

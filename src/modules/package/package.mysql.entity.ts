@@ -1,6 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
+import { VersionEntity } from "../version/version.mysql.entity";
+import { MaintainerEntity } from "../maintainer/maintainer.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -10,6 +12,8 @@ import { DATABASE_NAME } from '../../app.config';
 @Index(['pathname'])
 export class PackageEntity {
   @PrimaryGeneratedColumn()
+  @OneToOne(type => VersionEntity, version => version.pid)
+  @OneToOne(type => MaintainerEntity, maintainer => maintainer.pid)
   public id: number;
 
   @Column({
@@ -34,13 +38,11 @@ export class PackageEntity {
   @Column({
     type: 'integer',
   })
-  owner: UserEntity['id'];
+  userId: UserEntity['id'];
 
-  @Column({
-    type: 'bool',
-    default: false,
-  })
-  isDeleted: boolean;
+  @OneToOne(type => UserEntity, user => user.id)
+  @JoinColumn()
+  user: UserEntity;
 
   @Column({
     type: 'datetime',

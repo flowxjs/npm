@@ -1,6 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn, OneToMany, ManyToOne } from "typeorm";
 import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
+import { DependencyEntity } from "../dependencies/dependency.mysql.entity";
+import { KeywordEntity } from "../keywords/keyword.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -11,12 +13,18 @@ import { DATABASE_NAME } from '../../app.config';
 })
 export class VersionEntity {
   @PrimaryGeneratedColumn()
+  @OneToOne(type => DependencyEntity, dep => dep.vid)
+  @OneToOne(type => KeywordEntity, keyword => keyword.vid)
   public id: number;
 
   @Column({
     type: 'integer',
   })
   pid: PackageEntity['id'];
+
+  @OneToOne(type => PackageEntity, packages => packages.id)
+  @JoinColumn({ name: 'pid' })
+  package: PackageEntity
 
   @Column({
     type: 'bool',
@@ -85,12 +93,6 @@ export class VersionEntity {
     type: 'text',
   })
   attachment_data: string;
-
-  @Column({
-    type: 'bool',
-    default: false,
-  })
-  isDeleted: boolean;
 
   @Column({
     type: 'datetime',

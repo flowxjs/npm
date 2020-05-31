@@ -15,7 +15,7 @@ import { HttpPackageController } from './adapters/http/controller/package.contro
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
 
-import bodyParser from 'koa-bodyparser';
+// import bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
@@ -36,12 +36,12 @@ http.useController(HttpExtraController);
 http.useController(HttpTestController);
 http.useController(HttpPackageController);
 
-http.use(bodyParser());
-http.use(async (ctx, next) => {
-  container.logger.info(ctx.request.path, ctx.request.method, ctx.request.body);
-  require('fs').writeFileSync(require('path').resolve(process.cwd(), 'b.log'), JSON.stringify(ctx.request.body, null, 2), 'utf8');
-  await next();
-});
+// http.use(bodyParser());
+// http.use(async (ctx, next) => {
+//   container.logger.info(ctx.request.path, ctx.request.method, ctx.request.body);
+//   require('fs').writeFileSync(require('path').resolve(process.cwd(), 'b.log'), JSON.stringify(ctx.request.body, null, 2), 'utf8');
+//   await next();
+// });
 
 // Start All Service.
 container.bootstrap();

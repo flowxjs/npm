@@ -1,13 +1,16 @@
 import { injectable, inject } from 'inversify';
-import { Connection } from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 import { KeywordEntity } from './keyword.mysql.entity';
 
 @injectable()
 export class KeywordService {
   @inject('MySQL') connection: Connection;
 
-  async add(vid: KeywordEntity['vid'], word: KeywordEntity['word']) {
-    const repository = this.connection.getRepository(KeywordEntity);
+  async add(
+    repository: Repository<KeywordEntity>, 
+    vid: KeywordEntity['vid'], 
+    word: KeywordEntity['word'],
+  ) {
     const keyword = await repository.createQueryBuilder().where({
       vid, word
     }).getOne();
@@ -16,28 +19,20 @@ export class KeywordService {
       key.vid = vid;
       key.word = word;
       key.ctime = new Date();
-      key.isDeleted = false;
       key.utime = new Date();
       return await repository.save(key);
-    }
-    if (keyword.isDeleted) {
-      keyword.isDeleted = false;
-      keyword.utime = new Date();
-      return repository.save(keyword);
     }
     return keyword;
   }
 
-  async delete(vid: KeywordEntity['vid']) {
-    const repository = this.connection.getRepository(KeywordEntity);
+  async delete(
+    repository: Repository<KeywordEntity>, 
+    vid: KeywordEntity['vid']
+  ) {
     const [keywords, count] = await repository.createQueryBuilder().where({ 
       vid, isDeleted: false 
     }).getManyAndCount();
     if (!count) return;
-    await Promise.all(keywords.map(keyword => {
-      keyword.isDeleted = true;
-      keyword.utime = new Date();
-      return repository.save(keyword);
-    }));
+    await Promise.all(keywords.map(keyword => repository.delete(keyword)));
   }
 }

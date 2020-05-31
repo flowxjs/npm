@@ -11,7 +11,6 @@ export interface TUserLoginInput {
 export interface TUserLoginOutput {
   ok: boolean,
   id: string,
-  rev: string,
 }
 
 export interface TUserInfoOutput {

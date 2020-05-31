@@ -5,13 +5,18 @@ import BodyParser from 'koa-bodyparser';
 import { inject } from 'inversify';
 import { TypeRedis, buildCache } from '@flowx/redis';
 import { THttpContext } from '../../../app.bootstrap';
-import { HttpException } from '../exceptions/http.exception';
 import { TPackageInput, TPackageNormalizeOutput } from '../dto/package.dto';
 import { ConfigService } from '../../../modules/configs/config.service';
 import { ThirdPartyService } from '../../../modules/thirdparty/thirdparty.service';
 import { UserService } from '../../../modules/user/user.service';
 import { PackageService } from '../../../modules/package/package.service';
 import { HttpPackageController } from './package.controller';
+import { Authorization } from '../middlewares/authorize';
+import { IsLogined } from '../guards/is-logined';
+import { Connection } from 'typeorm';
+import { ConfigEntity } from '../../../modules/configs/config.mysql.entity';
+import { ThirdpartyEntity } from '../../../modules/thirdparty/thirdparty.mysql.entity';
+import { UserEntity } from '../../../modules/user/user.mysql.entity';
 import { 
   Controller, 
   Http, 
@@ -23,8 +28,7 @@ import {
   Redirect,
   useGuard
 } from '@flowx/http';
-import { Authorization } from '../middlewares/authorize';
-import { IsLogined } from '../guards/is-logined';
+import { UserException } from '../exceptions/user.exception';
 
 /**
  * package uri mode
@@ -47,8 +51,9 @@ enum PACKAGE_URI_MODE {
 }
 
 @Controller()
-@useException(HttpException)
+@useException(UserException)
 export class HttpExtraController {
+  @inject('MySQL') private connection: Connection;
   @inject('Http') private http: Http<THttpContext>;
   @inject('Redis') private redis: TypeRedis;
   @inject(ConfigService) private ConfigService: ConfigService;
@@ -59,7 +64,7 @@ export class HttpExtraController {
 
   @Get()
   configs() {
-    return this.ConfigService.query();
+    return this.ConfigService.query(this.connection.getRepository(ConfigEntity));
   }
 
   /**
@@ -75,13 +80,15 @@ export class HttpExtraController {
     @Body() body: { hostname: string },
     @Headers('npm-session') session: string
   ) {
-    const configs = await this.ConfigService.query();
+    const configRepository = this.connection.getRepository(ConfigEntity);
+    const thirdpartyRepository = this.connection.getRepository(ThirdpartyEntity);
+    const configs = await this.ConfigService.query(configRepository);
     if (!configs.loginType) {
       ctx.status = 404;
       return 'Using default login type.';
     }
     if (!session) throw new BadRequestException('请使用NPM的命令行工具登录');
-    const thirdparty = await this.ThirdPartyService.query(configs.loginType);
+    const thirdparty = await this.ThirdPartyService.query(thirdpartyRepository, configs.loginType);
     await this.redis.set(`thirdparty:${session}`, body.hostname, thirdparty.loginTimeExpire);
     return {
       loginUrl: url.resolve(configs.domain, `/-/v1/weblogin/authorize?session=${session}&hostname=${encodeURIComponent(body.hostname)}`),
@@ -103,9 +110,11 @@ export class HttpExtraController {
     @Query('session') session: string,
     @Query('hostname') hostname: string
   ) {
-    const configs = await this.ConfigService.query();
+    const configRepository = this.connection.getRepository(ConfigEntity);
+    const thirdpartyRepository = this.connection.getRepository(ThirdpartyEntity);
+    const configs = await this.ConfigService.query(configRepository);
     if (!configs.loginType) throw new BadRequestException('系统不允许使用外部授权');
-    const thirdparty = await this.ThirdPartyService.query(configs.loginType);
+    const thirdparty = await this.ThirdPartyService.query(thirdpartyRepository, configs.loginType);
     return {
       url: thirdparty.loginUrl.replace('{session}', session),
     }
@@ -123,11 +132,14 @@ export class HttpExtraController {
     @Ctx() ctx: ParameterizedContext<THttpContext>,
     @Query('session') session: string
   ) {
+    const configRepository = this.connection.getRepository(ConfigEntity);
+    const thirdpartyRepository = this.connection.getRepository(ThirdpartyEntity);
+    const userRepository = this.connection.getRepository(UserEntity);
     const redisData = await this.redis.get<string>(`thirdparty:${session}`);
     if (!redisData) throw new BadRequestException('找不到请求结果或者请求已过期');
-    const configs = await this.ConfigService.query();
+    const configs = await this.ConfigService.query(configRepository);
     if (!configs.loginType) throw new BadRequestException('系统不允许使用外部授权');
-    const thirdparty = await this.ThirdPartyService.query(configs.loginType);
+    const thirdparty = await this.ThirdPartyService.query(thirdpartyRepository, configs.loginType);
     const res = await new Promise<{ 
       status: number, 
       content?: { account: string, avatar: string, email: string, token: string, nickname?: string } 
@@ -154,6 +166,7 @@ export class HttpExtraController {
       await this.redis.del(`thirdparty:${session}`);
       // 插入数据库
       const user = await this.UserService.insert(
+        userRepository,
         res.content.account, 
         res.content.token,
         res.content.email,
@@ -162,7 +175,7 @@ export class HttpExtraController {
         res.content.avatar,
       );
       // 更新缓存
-      await buildCache(UserService, 'userInfo', res.content.account, configs.loginType);
+      await buildCache(UserService, 'userInfo', userRepository, res.content.account, configs.loginType);
       res.content.token = user.password;
     }
     ctx.status = res.status;
@@ -261,9 +274,10 @@ export class HttpExtraController {
   }
 
   @Put(PACKAGE_URI_MODE.SCOPE_COMPOSITION)
-  @useMiddleware(BodyParser())
+  @useMiddleware(Authorization)
   @useGuard(IsLogined)
-  async packageActionComposition(
+  @useMiddleware(BodyParser())
+  packageActionComposition(
     @Params('scope') scope: string,
     @Body() body: TPackageInput,
     @Ctx() ctx: THttpContext
@@ -277,9 +291,10 @@ export class HttpExtraController {
   }
 
   @Put(PACKAGE_URI_MODE.SCOPE_NORMALIZE)
-  @useMiddleware(BodyParser())
+  @useMiddleware(Authorization)
   @useGuard(IsLogined)
-  async packageActionCompositionOrWithVersion(
+  @useMiddleware(BodyParser())
+  packageActionCompositionOrWithVersion(
     @Params('scope') scope: string,
     @Params('pkgname') pkgname: string,
     @Body() body: TPackageInput,
@@ -304,9 +319,10 @@ export class HttpExtraController {
   }
 
   @Put(PACKAGE_URI_MODE.SCOPE_NORMALIZE_WITH_VERSION)
-  @useMiddleware(BodyParser())
+  @useMiddleware(Authorization)
   @useGuard(IsLogined)
-  async packageActionWithVersion(
+  @useMiddleware(BodyParser())
+  packageActionWithVersion(
     @Params('scope') scope: string,
     @Params('pkgname') pkgname: string,
     @Params('version') version: string,
@@ -318,7 +334,6 @@ export class HttpExtraController {
 
   private async togglePackageActions(ctx: THttpContext, body: TPackageInput, value: { scope: string, pkgname: string, version?: string }): Promise<TPackageNormalizeOutput> {
     const res = await this.HttpPackageController.publish(ctx.user, value, body);
-    console.log(res);
     return {
       ok: true,
     }
@@ -326,8 +341,9 @@ export class HttpExtraController {
 
   private async getPackage(options: {scope?: string, pkgname: string, version?: string}) {
     let pathname: string;
+    const configRepository = this.connection.getRepository(ConfigEntity);
     const { scope, pkgname, version } = options;
-    const configs = await this.ConfigService.query();
+    const configs = await this.ConfigService.query(configRepository);
     const prefixes = configs.registries;
     if (scope) {
       if (version) {

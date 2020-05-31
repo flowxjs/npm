@@ -1,12 +1,18 @@
 import { injectable, inject } from 'inversify';
-import { Connection } from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 import { VersionEntity } from './version.mysql.entity';
+import { PackageEntity } from '../package/package.mysql.entity';
 
 @injectable()
 export class VersionService {
   @inject('MySQL') connection: Connection;
 
-  async add(data: any) {
-    
+  findVersionsByPid(
+    repository: Repository<VersionEntity>, 
+    pid: PackageEntity['id']
+  ) {
+    return repository.createQueryBuilder().where({
+      packageId: pid,
+    }).getMany();
   }
 }

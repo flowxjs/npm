@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
 import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
@@ -19,16 +19,18 @@ export class MaintainerEntity {
   })
   pid: PackageEntity['id'];
 
-  @Column({
-    type: 'integer',
-  })
-  uid: UserEntity['id'];
+  @OneToOne(type => PackageEntity, packages => packages.id)
+  @JoinColumn({ name: 'pid' })
+  Package: PackageEntity
 
   @Column({
-    type: 'bool',
-    default: false,
+    type: 'integer'
   })
-  isDeleted: boolean;
+  uid: number;
+
+  @OneToOne(type => UserEntity, user => user.id)
+  @JoinColumn({ name: 'uid' })
+  User: UserEntity;
 
   @Column({
     type: 'datetime',

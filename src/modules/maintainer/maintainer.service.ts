@@ -1,43 +1,57 @@
 import { injectable, inject } from 'inversify';
-import { Connection } from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 import { MaintainerEntity } from './maintainer.mysql.entity';
 
 @injectable()
 export class MaintainerService {
   @inject('MySQL') connection: Connection;
+  
+  findByPid(
+    repository: Repository<MaintainerEntity>, 
+    pid: MaintainerEntity['pid']
+  ) {
+    return repository.createQueryBuilder().where({
+      pid
+    }).getMany();
+  }
 
-  async add(pid: MaintainerEntity['pid'], uid: MaintainerEntity['uid']) {
-    const repository = this.connection.getRepository(MaintainerEntity);
+  getCountByPidAndUid(
+    repository: Repository<MaintainerEntity>, 
+    pid: MaintainerEntity['pid'], 
+    uid: MaintainerEntity['uid']
+  ) {
+    return repository.createQueryBuilder().where({
+      pid, userId: uid
+    }).getCount();
+  }
+
+  async add(
+    repository: Repository<MaintainerEntity>, 
+    pid: MaintainerEntity['pid'], 
+    uid: MaintainerEntity['uid']
+  ) {
     const maintainer = await repository.createQueryBuilder().where({
-      pid, uid
+      pid, userId: uid
     }).getOne();
     if (!maintainer) {
       const mainer = new MaintainerEntity();
       mainer.ctime = new Date();
-      mainer.isDeleted = false;
       mainer.pid = pid;
       mainer.uid = uid;
       mainer.utime = new Date();
       return await repository.save(mainer);
     }
-    if (maintainer.isDeleted) {
-      maintainer.isDeleted = false;
-      maintainer.utime = new Date();
-      return repository.save(maintainer);
-    }
     return maintainer;
   }
 
-  async delete(pid: MaintainerEntity['pid']) {
-    const repository = this.connection.getRepository(MaintainerEntity);
+  async delete(
+    repository: Repository<MaintainerEntity>, 
+    pid: MaintainerEntity['pid']
+  ) {
     const [maintainers, count] = await repository.createQueryBuilder().where({ 
       pid, isDeleted: false 
     }).getManyAndCount();
     if (!count) return;
-    await Promise.all(maintainers.map(maintainer => {
-      maintainer.isDeleted = true;
-      maintainer.utime = new Date();
-      return repository.save(maintainer);
-    }));
+    await Promise.all(maintainers.map(maintainer => repository.delete(maintainer)));
   }
 }

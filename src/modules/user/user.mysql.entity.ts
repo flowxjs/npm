@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne } from "typeorm";
+import { MaintainerEntity } from '../maintainer/maintainer.mysql.entity';
+import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
@@ -10,6 +12,8 @@ import { DATABASE_NAME } from '../../app.config';
 })
 export class UserEntity {
   @PrimaryGeneratedColumn()
+  @OneToOne(type => MaintainerEntity, maintainer => maintainer.uid)
+  @OneToOne(type => PackageEntity, packages => packages.user)
   public id: number;
 
   @Column({
@@ -67,12 +71,6 @@ export class UserEntity {
   })
   // 是否为管理员
   isAdmin: boolean;
-
-  @Column({
-    type: 'bool',
-    default: false,
-  })
-  isDeleted: boolean;
 
   @Column({
     type: 'datetime',
