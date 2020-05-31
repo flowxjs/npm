@@ -10,6 +10,7 @@ export class UserException implements HttpErrorException<Koa.ParameterizedContex
     ctx.body = {
       error: ctx.body,
       reason: ctx.body,
+      code: 'EOTP',
     }
   }
 }

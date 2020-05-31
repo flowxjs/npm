@@ -13,7 +13,7 @@ import {
   Controller, 
   HttpCode, 
   useException, 
-  Put, Get, Delete, Post, Headers,
+  Put, Get, Delete, Post,
   Body, Params,
   useMiddleware,
   BadRequestException,
@@ -36,6 +36,7 @@ export class HttpUserController {
    */
   @HttpCode(201)
   @useMiddleware(BodyParser())
+  @useMiddleware(Authorization)
   @Put('/org.couchdb.user:account')
   // shell: npm login --registry=http://127.0.0.1:3000
   async AddUser(
@@ -47,8 +48,11 @@ export class HttpUserController {
     const user = await this.UserService.userInfo(body.name, 0);
     if (user) {
       if (!user.status) throw new BadRequestException('用户禁止登录');
-      if (!(await this.IsLogined.canActivate(ctx))) throw new BadRequestException('用户账号无效或者密码错误');
-      if (!this.UserService.checkPassword(user.password, user.salt, body.password)) throw new BadRequestException('密码错误，无法登录。');
+      if (ctx.authUsername && ctx.authPassword) {
+        if (!this.UserService.checkPassword(user.password, user.salt, ctx.authPassword)) {
+          throw new BadRequestException('密码错误，无法登录。');
+        }
+      }
       if (user.isDeleted) await this.UserService.revokeUser(user.id);
       await this.UserService.changePassword(user.id, body.password);
       await this.UserService.update(user.id, { avatar: undefined, email: body.email, nickname: body.name });
