@@ -33,7 +33,7 @@
   "dependencies": {
     "@flowx/container": "^1.0.16",
     "@flowx/http": "^1.0.21",
-    "@flowx/redis": "^1.0.8",
+    "@flowx/redis": "^1.0.9",
     "@flowx/typeorm": "^1.0.3",
     "@reactivex/rxjs": "^6.5.5",
     "@types/gravatar": "^1.8.1",
