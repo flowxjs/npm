@@ -29,6 +29,7 @@ import {
   useGuard
 } from '@flowx/http';
 import { UserException } from '../exceptions/user.exception';
+import { PackageEntity } from '../../../modules/package/package.mysql.entity';
 
 /**
  * package uri mode
@@ -342,6 +343,7 @@ export class HttpExtraController {
   private async getPackage(options: {scope?: string, pkgname: string, version?: string}) {
     let pathname: string;
     const configRepository = this.connection.getRepository(ConfigEntity);
+    const packageRepository = this.connection.getRepository(PackageEntity);
     const { scope, pkgname, version } = options;
     const configs = await this.ConfigService.query(configRepository);
     const prefixes = configs.registries;
@@ -358,6 +360,11 @@ export class HttpExtraController {
         pathname = `/${pkgname}`;
       }
     }
+
+    if (!scope) return await this.PackageService.anyFetch(prefixes, pathname);
+    if (configs.scopes.indexOf('@' + scope) === -1) return await this.PackageService.anyFetch(prefixes, pathname);
+    const local = await this.PackageService.info(packageRepository, '@' + scope, pkgname);
+    if (local) return local; // http://127.0.0.1:3000/@node/find-my-way
     return await this.PackageService.anyFetch(prefixes, pathname);
   }
 }

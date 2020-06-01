@@ -15,7 +15,6 @@ export class KeywordEntity {
 
   @Column({
     type: 'integer',
-    nullable: true,
   })
   vid: VersionEntity['id'];
 

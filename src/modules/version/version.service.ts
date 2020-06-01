@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import { Connection, Repository } from 'typeorm';
 import { VersionEntity } from './version.mysql.entity';
 import { PackageEntity } from '../package/package.mysql.entity';
+import { v4 } from 'uuid';
 
 interface TVersionCompareTree {
   items?: {
@@ -35,6 +36,8 @@ export class VersionService {
 
   insert(
     versionRepository: Repository<VersionEntity>, 
+    uid: number,
+    pid: number,
     code: string,
     bugs: string,
     description: string,
@@ -45,10 +48,11 @@ export class VersionService {
     shasum: string,
     tarball: string,
     integrity: string,
-    attachment_data: string,
     size: number,
   ) {
     const version = new VersionEntity();
+    version.uid = uid;
+    version.pid = pid;
     version.ctime = new Date();
     version.description = description;
     version.homepage = homepage;
@@ -59,9 +63,9 @@ export class VersionService {
     version.shasum = shasum;
     version.tarball = tarball;
     version.utime = new Date();
-    version.attachment_data = attachment_data;
     version.bugs = bugs;
     version.code = code;
+    version.rev = v4();
     version.attachment_size = size;
     return versionRepository.save(version);
   }

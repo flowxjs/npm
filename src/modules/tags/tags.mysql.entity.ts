@@ -16,7 +16,6 @@ export class TagEntity {
 
   @Column({
     type: 'integer',
-    nullable: true,
   })
   pid: number;
 

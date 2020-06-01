@@ -1,6 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, JoinColumn, ManyToOne } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
+import { UserEntity } from "../user/user.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -15,7 +16,6 @@ export class MaintainerEntity {
 
   @Column({
     type: 'integer',
-    nullable: true,
   })
   pid: PackageEntity['id'];
 
@@ -36,5 +36,9 @@ export class MaintainerEntity {
 
   @ManyToOne(type => PackageEntity, packages => packages.Maintainers)
   @JoinColumn({ name: 'pid' })
-  Package: PackageEntity
+  Package: PackageEntity;
+
+  @ManyToOne(type => UserEntity, user => user.Maintainers)
+  @JoinColumn({ name: 'uid' })
+  User: UserEntity
 }

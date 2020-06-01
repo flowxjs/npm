@@ -23,6 +23,7 @@ import { TagService } from '../../../modules/tags/tags.service';
 import { TagEntity } from '../../../modules/tags/tags.mysql.entity';
 import { ConfigService } from '../../../modules/configs/config.service';
 import { ConfigEntity } from '../../../modules/configs/config.mysql.entity';
+import { getCache } from '@flowx/redis';
 
 @Controller()
 @useException(UserException)
@@ -50,6 +51,8 @@ export class HttpPackageController {
       throw new BadRequestException('错误的版本');
     }
 
+    meta.scope = '@' + meta.scope;
+
     // 将上传的包的base64数据转换成Buffer流
     // 以便使用fs存储到磁盘上
     const tarballBuffer = Buffer.from(attachment.data, 'base64');
@@ -69,7 +72,7 @@ export class HttpPackageController {
     }
 
     // 修改tarball地址
-    pkg.versions[version].dist.tarball = url.resolve(DOMAIN, '/-/download/' + meta.scope + '/' + meta.pkgname + '/' + version);
+    // pkg.versions[version].dist.tarball = url.resolve(DOMAIN, '/-/download/' + meta.scope + '/' + meta.pkgname + '/' + version);
 
     // 创建事务处理
     const runner = this.connection.createQueryRunner();
@@ -88,13 +91,13 @@ export class HttpPackageController {
 
     const configs = await this.ConfigService.query(ConfigsRepository);
 
-    if (configs.registries.indexOf(meta.scope) === -1) {
+    if (configs.scopes.indexOf(meta.scope) === -1) {
       throw new BadRequestException(`你没有私有源${meta.scope}的发布权限`);
     }
 
     try {
       const packageExists = !!(await this.PackageService.findByPathname(PackageRepository, meta.scope + '/' + meta.pkgname));
-      const PackageChunk = await this.PackageService.insert(PackageRepository, meta.scope + '/' + meta.pkgname, user.id);
+      let PackageChunk = await this.PackageService.insert(PackageRepository, meta.scope + '/' + meta.pkgname, user.id);
       
       // 当已存在模块
       // 检测当前用户是否具有发布权限
@@ -121,9 +124,10 @@ export class HttpPackageController {
       PackageChunk.Maintainers.push(maintainer);
 
       // 插入版本
-      if (!PackageChunk.Versions) PackageChunk.Versions = [];
       const Version = await this.VersionService.insert(
         VersionRepository,
+        user.id,
+        PackageChunk.id,
         version,
         JSON.stringify(pkg.versions[version].bugs),
         pkg.description,
@@ -134,12 +138,9 @@ export class HttpPackageController {
         shasum,
         tarbalDBPath,
         pkg.versions[version].dist.integrity,
-        attachment.data,
         attachment.length
       );
 
-      
-      
       // 添加各种依赖
       if (!Version.Dependencies) Version.Dependencies = [];
       Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].dependencies || {}, null, Version.id));
@@ -151,16 +152,17 @@ export class HttpPackageController {
       // 添加关键字
       if (!Version.Keywords) Version.Keywords = [];
       Version.Keywords.push(...await this.KeywordService.autoAddMany(KeywordRepository, Version.id, pkg.versions[version].keywords || []));
-
-      PackageChunk.Versions.push(await VersionRepository.save(Version));
-      const Packages = await PackageRepository.save(PackageChunk);
-
+      const Versionner = await VersionRepository.save(Version);
+      if (!packageExists) {
+        if (!PackageChunk.Versions) PackageChunk.Versions = [];
+        PackageChunk.Versions.push(Versionner);
+        PackageChunk = await PackageRepository.save(PackageChunk);
+      }
       // 添加dist-tags
-      if (!Packages.Tags) Packages.Tags = [];
-      Packages.Tags.push(...await this.TagService.autoAddMany(TagRepository, VersionRepository, Packages.id, distTags));
-
+      if (!PackageChunk.Tags) PackageChunk.Tags = [];
+      PackageChunk.Tags.push(...await this.TagService.autoAddMany(TagRepository, VersionRepository, PackageChunk.id, distTags));
       await PackageRepository.save(PackageChunk);
-
+      await getCache(PackageService, 'info').build(PackageRepository, meta.scope, meta.pkgname);
       ensureDirSync(tarballDictionary);
       writeFileSync(tarballFilename, tarballBuffer);
       events.push(() => removeSync(tarballFilename));

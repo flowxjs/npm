@@ -16,7 +16,6 @@ export class DependencyEntity {
 
   @Column({
     type: 'integer',
-    nullable: true,
   })
   vid: VersionEntity['id'];
 

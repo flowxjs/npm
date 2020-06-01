@@ -3,6 +3,7 @@ import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { DependencyEntity } from "../dependencies/dependency.mysql.entity";
 import { KeywordEntity } from "../keywords/keyword.mysql.entity";
+import { UserEntity } from "../user/user.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -17,8 +18,12 @@ export class VersionEntity {
   public id: number;
 
   @Column({
+    type: 'integer'
+  })
+  uid: UserEntity['id']
+
+  @Column({
     type: 'integer',
-    nullable: true,
   })
   pid: PackageEntity['id'];
 
@@ -76,15 +81,16 @@ export class VersionEntity {
   integrity: string;
 
   @Column({
-    type: 'text',
-  })
-  attachment_data: string;
-
-  @Column({
     type: 'integer',
     default: 0,
   })
   attachment_size: number;
+
+  @Column({
+    type: 'varchar',
+    length: 100
+  })
+  rev: string;
 
   @Column({
     type: 'datetime',

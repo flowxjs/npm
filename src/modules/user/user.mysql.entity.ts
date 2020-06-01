@@ -1,7 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne } from "typeorm";
-import { MaintainerEntity } from '../maintainer/maintainer.mysql.entity';
-import { PackageEntity } from '../package/package.mysql.entity';
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, OneToMany } from "typeorm";
 import { DATABASE_NAME } from '../../app.config';
+import { MaintainerEntity } from "../maintainer/maintainer.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -79,4 +78,7 @@ export class UserEntity {
     type: 'datetime',
   })
   utime: Date;
+
+  @OneToMany(type => MaintainerEntity, maintainer => maintainer.User)
+  Maintainers: MaintainerEntity[];
 }
