@@ -26,7 +26,8 @@ import {
   BadRequestException, 
   HttpCode,
   Redirect,
-  useGuard
+  useGuard,
+  NotFoundException
 } from '@flowx/http';
 import { UserException } from '../exceptions/user.exception';
 import { PackageEntity } from '../../../modules/package/package.mysql.entity';
@@ -364,7 +365,14 @@ export class HttpExtraController {
     if (!scope) return await this.PackageService.anyFetch(prefixes, pathname);
     if (configs.scopes.indexOf('@' + scope) === -1) return await this.PackageService.anyFetch(prefixes, pathname);
     const local = await this.PackageService.info(packageRepository, '@' + scope, pkgname);
-    if (local) return local; // http://127.0.0.1:3000/@node/find-my-way
+    if (local) {
+      // http://127.0.0.1:3000/@node/find-my-way
+      if (version) {
+        if (!local.versions[version]) throw new NotFoundException('找不到模块版本');
+        return local.versions[version];
+      }
+      return local;
+    } 
     return await this.PackageService.anyFetch(prefixes, pathname);
   }
 }

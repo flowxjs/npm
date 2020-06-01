@@ -45,7 +45,7 @@ export function SetupMySQL(container: TypeContainer, orm: TypeORM) {
       configs.close = false;
       configs.domain = DOMAIN;
       configs.loginType = 0;
-      configs.registries = '["http://registry.npmjs.org/"]';
+      configs.registries = '["https://registry.npmjs.org/"]';
       configs.scopes = '["@node"]';
       await connection.manager.save(configs);
       container.logger.warn('', 'Default configuration added in %dms.', Date.now() - time);
