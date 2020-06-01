@@ -5,7 +5,7 @@ import { ensureDirSync, writeFileSync, removeSync } from 'fs-extra';
 import { inject } from 'inversify';
 import { Connection } from 'typeorm';
 import { Controller, BadRequestException, useException } from '@flowx/http';
-import { DOMAIN, NFS } from '../../../app.config';
+import { NFS } from '../../../app.config';
 import { TPackageInput } from '../dto/package.dto';
 import { UserException } from '../exceptions/user.exception';
 import { MaintainerService } from '../../../modules/maintainer/maintainer.service';
