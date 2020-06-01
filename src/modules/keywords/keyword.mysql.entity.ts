@@ -15,6 +15,7 @@ export class KeywordEntity {
 
   @Column({
     type: 'integer',
+    nullable: true,
   })
   vid: VersionEntity['id'];
 
@@ -34,7 +35,7 @@ export class KeywordEntity {
   })
   utime: Date;
 
-  @ManyToOne(type => VersionEntity, version => version.id)
+  @ManyToOne(type => VersionEntity, version => version.Keywords)
   @JoinColumn({ name: 'vid' })
   Version: VersionEntity;
 }

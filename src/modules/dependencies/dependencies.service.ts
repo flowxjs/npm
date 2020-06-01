@@ -42,9 +42,11 @@ export class DependenciesService {
     type: DependencyEntity['type'],
     vid: DependencyEntity['vid'],
   ) {
+    const pools: DependencyEntity[] = []
     for (const key in data) {
-      await this.add(repository, vid, key, data[key], type);
+      pools.push(await this.add(repository, vid, key, data[key], type));
     }
+    return pools;
   }
 
   /**

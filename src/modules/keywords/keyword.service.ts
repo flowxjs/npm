@@ -11,9 +11,11 @@ export class KeywordService {
     vid: KeywordEntity['vid'], 
     words: KeywordEntity['word'][],
   ) {
+    const pools: KeywordEntity[] = [];
     for (let i = 0; i < words.length; i++) {
-      await this.add(repository, vid, words[i]);
+      pools.push(await this.add(repository, vid, words[i]));
     }
+    return pools;
   }
 
   async add(

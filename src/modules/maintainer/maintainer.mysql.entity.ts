@@ -15,6 +15,7 @@ export class MaintainerEntity {
 
   @Column({
     type: 'integer',
+    nullable: true,
   })
   pid: PackageEntity['id'];
 
@@ -33,7 +34,7 @@ export class MaintainerEntity {
   })
   utime: Date;
 
-  @ManyToOne(type => PackageEntity, packages => packages.id)
+  @ManyToOne(type => PackageEntity, packages => packages.Maintainers)
   @JoinColumn({ name: 'pid' })
   Package: PackageEntity
 }

@@ -21,6 +21,8 @@ import { KeywordEntity } from '../../../modules/keywords/keyword.mysql.entity';
 import { KeywordService } from '../../../modules/keywords/keyword.service';
 import { TagService } from '../../../modules/tags/tags.service';
 import { TagEntity } from '../../../modules/tags/tags.mysql.entity';
+import { ConfigService } from '../../../modules/configs/config.service';
+import { ConfigEntity } from '../../../modules/configs/config.mysql.entity';
 
 @Controller()
 @useException(UserException)
@@ -32,6 +34,7 @@ export class HttpPackageController {
   @inject(DependenciesService) private DependenciesService: DependenciesService;
   @inject(KeywordService) private KeywordService: KeywordService;
   @inject(TagService) private TagService: TagService;
+  @inject(ConfigService) private ConfigService: ConfigService;
 
   async publish(user: THttpContext['user'], meta: {
     scope: string;
@@ -79,8 +82,15 @@ export class HttpPackageController {
     const VersionRepository = runner.manager.getRepository(VersionEntity);
     const KeywordRepository = runner.manager.getRepository(KeywordEntity);
     const TagRepository = runner.manager.getRepository(TagEntity);
+    const ConfigsRepository = runner.manager.getRepository(ConfigEntity);
 
-    const events: (() => Promise<void>)[] = [];
+    const events: (() => void)[] = [];
+
+    const configs = await this.ConfigService.query(ConfigsRepository);
+
+    if (configs.registries.indexOf(meta.scope) === -1) {
+      throw new BadRequestException(`你没有私有源${meta.scope}的发布权限`);
+    }
 
     try {
       const packageExists = !!(await this.PackageService.findByPathname(PackageRepository, meta.scope + '/' + meta.pkgname));
@@ -106,9 +116,12 @@ export class HttpPackageController {
       ////////////////////////////////////////////////////
 
       // 插入协同开发者
-      await this.MaintainerService.add(MaintainerRepository, PackageChunk.id, user.id);
+      if (!PackageChunk.Maintainers) PackageChunk.Maintainers = [];
+      const maintainer = await this.MaintainerService.add(MaintainerRepository, PackageChunk.id, user.id);
+      PackageChunk.Maintainers.push(maintainer);
 
       // 插入版本
+      if (!PackageChunk.Versions) PackageChunk.Versions = [];
       const Version = await this.VersionService.insert(
         VersionRepository,
         version,
@@ -122,32 +135,41 @@ export class HttpPackageController {
         tarbalDBPath,
         pkg.versions[version].dist.integrity,
         attachment.data,
-        PackageChunk.id,
         attachment.length
       );
+
+      
       
       // 添加各种依赖
-      await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].dependencies || {}, null, Version.id);
-      await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].devDependencies || {}, 'dev', Version.id);
-      await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].peerDependencies || {}, 'peer', Version.id);
-      await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].optionalDependencies || {}, 'optional', Version.id);
-      await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].bundledDenpendencies || {}, 'bundled', Version.id);
+      if (!Version.Dependencies) Version.Dependencies = [];
+      Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].dependencies || {}, null, Version.id));
+      Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].devDependencies || {}, 'dev', Version.id));
+      Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].peerDependencies || {}, 'peer', Version.id));
+      Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].optionalDependencies || {}, 'optional', Version.id));
+      Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].bundledDenpendencies || {}, 'bundled', Version.id));
 
       // 添加关键字
-      await this.KeywordService.autoAddMany(KeywordRepository, Version.id, pkg.versions[version].keywords || []);
+      if (!Version.Keywords) Version.Keywords = [];
+      Version.Keywords.push(...await this.KeywordService.autoAddMany(KeywordRepository, Version.id, pkg.versions[version].keywords || []));
+
+      PackageChunk.Versions.push(await VersionRepository.save(Version));
+      const Packages = await PackageRepository.save(PackageChunk);
 
       // 添加dist-tags
-      await this.TagService.autoAddMany(TagRepository, VersionRepository, PackageChunk.id, distTags);
+      if (!Packages.Tags) Packages.Tags = [];
+      Packages.Tags.push(...await this.TagService.autoAddMany(TagRepository, VersionRepository, Packages.id, distTags));
+
+      await PackageRepository.save(PackageChunk);
 
       ensureDirSync(tarballDictionary);
       writeFileSync(tarballFilename, tarballBuffer);
-      events.push(async () => removeSync(tarballFilename));
+      events.push(() => removeSync(tarballFilename));
 
       await runner.commitTransaction();
     } catch(e) {
       await runner.rollbackTransaction();
       let i = events.length;
-      while (i--) await events[i]();
+      while (i--) events[i]();
       throw e;
     } finally {
       await runner.release();

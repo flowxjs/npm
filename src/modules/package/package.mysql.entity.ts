@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn, OneToMany } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToMany } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { VersionEntity } from "../version/version.mysql.entity";
@@ -49,12 +49,12 @@ export class PackageEntity {
   })
   utime: Date;
 
-  @OneToMany(type => VersionEntity, version => version.pid)
+  @OneToMany(type => VersionEntity, version => version.Package)
   Versions: VersionEntity[];
 
-  @OneToMany(type => TagEntity, tag => tag.pid)
+  @OneToMany(type => TagEntity, tag => tag.Package)
   Tags: TagEntity[];
 
-  @OneToMany(type => MaintainerEntity, maintainer => maintainer.pid)
+  @OneToMany(type => MaintainerEntity, maintainer => maintainer.Package)
   Maintainers: MaintainerEntity[];
 }

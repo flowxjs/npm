@@ -15,7 +15,8 @@ export class TagEntity {
   public id: number;
 
   @Column({
-    type: 'integer'
+    type: 'integer',
+    nullable: true,
   })
   pid: number;
 
@@ -40,7 +41,7 @@ export class TagEntity {
   })
   utime: Date;
 
-  @ManyToOne(type => PackageEntity, packages => packages.id)
+  @ManyToOne(type => PackageEntity, packages => packages.Tags)
   @JoinColumn({ name: 'pid' })
   Package: PackageEntity;
 }

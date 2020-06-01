@@ -46,7 +46,6 @@ export class VersionService {
     tarball: string,
     integrity: string,
     attachment_data: string,
-    pid: number,
     size: number,
   ) {
     const version = new VersionEntity();
@@ -55,7 +54,6 @@ export class VersionService {
     version.homepage = homepage;
     version.integrity = integrity;
     version.license = license;
-    version.pid = pid;
     version.readme = readme;
     version.repository = repository;
     version.shasum = shasum;

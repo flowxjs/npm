@@ -16,6 +16,7 @@ export class DependencyEntity {
 
   @Column({
     type: 'integer',
+    nullable: true,
   })
   vid: VersionEntity['id'];
 
@@ -54,7 +55,7 @@ export class DependencyEntity {
   })
   utime: Date;
 
-  @ManyToOne(type => VersionEntity, version => version.id)
+  @ManyToOne(type => VersionEntity, version => version.Dependencies)
   @JoinColumn({ name: 'vid' })
   Version: VersionEntity;
 }

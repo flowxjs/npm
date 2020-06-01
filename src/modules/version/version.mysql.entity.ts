@@ -3,8 +3,6 @@ import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { DependencyEntity } from "../dependencies/dependency.mysql.entity";
 import { KeywordEntity } from "../keywords/keyword.mysql.entity";
-import { TagEntity } from "../tags/tags.mysql.entity";
-import { MaintainerEntity } from "../maintainer/maintainer.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -16,13 +14,11 @@ import { MaintainerEntity } from "../maintainer/maintainer.mysql.entity";
 @Index(['code'])
 export class VersionEntity {
   @PrimaryGeneratedColumn()
-  @OneToOne(type => DependencyEntity, dep => dep.vid)
-  @OneToOne(type => KeywordEntity, keyword => keyword.vid)
-  @OneToOne(type => TagEntity, tag => tag.vid)
   public id: number;
 
   @Column({
     type: 'integer',
+    nullable: true,
   })
   pid: PackageEntity['id'];
 
@@ -100,13 +96,13 @@ export class VersionEntity {
   })
   utime: Date;
 
-  @ManyToOne(type => PackageEntity, packages => packages.id)
+  @ManyToOne(type => PackageEntity, packages => packages.Versions)
   @JoinColumn({ name: 'pid' })
   Package: PackageEntity;
 
-  @OneToMany(type => DependencyEntity, dep => dep.vid)
+  @OneToMany(type => DependencyEntity, dep => dep.Version)
   Dependencies: DependencyEntity[];
 
-  @OneToMany(type => KeywordEntity, keyword => keyword.vid)
+  @OneToMany(type => KeywordEntity, keyword => keyword.Version)
   Keywords: KeywordEntity[];
 }

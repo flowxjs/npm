@@ -6,7 +6,6 @@ import { VersionEntity } from '../version/version.mysql.entity';
 
 @injectable()
 export class TagService {
-  @inject('MySQL') private connection: Connection;
   @inject(VersionService) private VersionService: VersionService;
 
   async autoAddMany(
@@ -15,12 +14,14 @@ export class TagService {
     pid: TagEntity['pid'],
     distTags: { [key: string]: string }
   ) {
+    const pools: TagEntity[] = [];
     for (const key in distTags) {
       const value = distTags[key];
       const version = await this.VersionService.findByPidAndCode(versionRepository, pid, value);
       if (!version) continue;
-      await this.add(tagRepository, version.id, pid, key);
+      pools.push(await this.add(tagRepository, version.id, pid, key));
     }
+    return pools;
   }
   
   async add(
