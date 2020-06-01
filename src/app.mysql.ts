@@ -11,6 +11,7 @@ import { PackageEntity } from './modules/package/package.mysql.entity';
 import { UserEntity } from './modules/user/user.mysql.entity';
 import { VersionEntity } from './modules/version/version.mysql.entity';
 import { ThirdpartyEntity } from './modules/thirdparty/thirdparty.mysql.entity';
+import { TagEntity } from './modules/tags/tags.mysql.entity';
 
 export function SetupMySQL(container: TypeContainer, orm: TypeORM) {
   const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({
@@ -28,7 +29,8 @@ export function SetupMySQL(container: TypeContainer, orm: TypeORM) {
       PackageEntity,
       UserEntity,
       VersionEntity,
-      ThirdpartyEntity
+      ThirdpartyEntity,
+      TagEntity
     ],
     synchronize: true,
     // logging: true,

@@ -3,6 +3,7 @@ import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { DependencyEntity } from "../dependencies/dependency.mysql.entity";
 import { KeywordEntity } from "../keywords/keyword.mysql.entity";
+import { TagEntity } from "../tags/tags.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -11,10 +12,12 @@ import { KeywordEntity } from "../keywords/keyword.mysql.entity";
 @Index(['pid', 'code'], {
   unique: true
 })
+@Index(['code'])
 export class VersionEntity {
   @PrimaryGeneratedColumn()
   @OneToOne(type => DependencyEntity, dep => dep.vid)
   @OneToOne(type => KeywordEntity, keyword => keyword.vid)
+  @OneToOne(type => TagEntity, tag => tag.vid)
   public id: number;
 
   @Column({
@@ -25,11 +28,6 @@ export class VersionEntity {
   @OneToOne(type => PackageEntity, packages => packages.id)
   @JoinColumn({ name: 'pid' })
   package: PackageEntity
-
-  @Column({
-    type: 'bool',
-  })
-  _private: boolean;
 
   @Column({
     type: 'varchar',
@@ -82,17 +80,18 @@ export class VersionEntity {
   @Column({
     type: 'text',
   })
-  scripts: string;
-
-  @Column({
-    type: 'text',
-  })
   integrity: string;
 
   @Column({
     type: 'text',
   })
   attachment_data: string;
+
+  @Column({
+    type: 'integer',
+    default: 0,
+  })
+  attachment_size: number;
 
   @Column({
     type: 'datetime',

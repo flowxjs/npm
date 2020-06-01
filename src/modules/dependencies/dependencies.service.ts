@@ -36,6 +36,17 @@ export class DependenciesService {
     return dependency;
   }
 
+  async autoAddMany(
+    repository: Repository<DependencyEntity>, 
+    data: { [key: string]: string }, 
+    type: DependencyEntity['type'],
+    vid: DependencyEntity['vid'],
+  ) {
+    for (const key in data) {
+      await this.add(repository, vid, key, data[key], type);
+    }
+  }
+
   /**
    * 删除某个包版本下的所有依赖
    * @param id 

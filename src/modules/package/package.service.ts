@@ -125,7 +125,7 @@ export class PackageService {
     pkg = new PackageEntity();
     pkg.ctime = new Date();
     pkg.name = namespace;
-    pkg.userId = uid;
+    pkg.uid = uid;
     pkg.pathname = pathname;
     pkg.scope = scope;
     pkg.utime = new Date();

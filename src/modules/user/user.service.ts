@@ -34,7 +34,6 @@ export class UserService {
     referer: number
   ) {
     return repository.createQueryBuilder().where({
-      isDeleted: false,
       account, referer,
     }).getOne();
   }
@@ -214,7 +213,6 @@ export class UserService {
   ) {
     return repository.createQueryBuilder().where({
       password: token,
-      isDeleted: false,
     }).andWhere('referer>0').getOne();
   }
 

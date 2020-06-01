@@ -13,7 +13,7 @@ import { DATABASE_NAME } from '../../app.config';
 export class UserEntity {
   @PrimaryGeneratedColumn()
   @OneToOne(type => MaintainerEntity, maintainer => maintainer.uid)
-  @OneToOne(type => PackageEntity, packages => packages.user)
+  @OneToOne(type => PackageEntity, packages => packages.uid)
   public id: number;
 
   @Column({

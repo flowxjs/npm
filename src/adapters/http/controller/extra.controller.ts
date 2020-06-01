@@ -3,7 +3,7 @@ import request from 'request';
 import url from 'url';
 import BodyParser from 'koa-bodyparser';
 import { inject } from 'inversify';
-import { TypeRedis, buildCache } from '@flowx/redis';
+import { TypeRedis, getCache } from '@flowx/redis';
 import { THttpContext } from '../../../app.bootstrap';
 import { TPackageInput, TPackageNormalizeOutput } from '../dto/package.dto';
 import { ConfigService } from '../../../modules/configs/config.service';
@@ -175,7 +175,7 @@ export class HttpExtraController {
         res.content.avatar,
       );
       // 更新缓存
-      await buildCache(UserService, 'userInfo', userRepository, res.content.account, configs.loginType);
+      await getCache(UserService, 'userInfo').build(userRepository, res.content.account, configs.loginType);
       res.content.token = user.password;
     }
     ctx.status = res.status;

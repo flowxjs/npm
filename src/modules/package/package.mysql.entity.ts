@@ -3,6 +3,7 @@ import { UserEntity } from '../user/user.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { VersionEntity } from "../version/version.mysql.entity";
 import { MaintainerEntity } from "../maintainer/maintainer.mysql.entity";
+import { TagEntity } from "../tags/tags.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -14,6 +15,7 @@ export class PackageEntity {
   @PrimaryGeneratedColumn()
   @OneToOne(type => VersionEntity, version => version.pid)
   @OneToOne(type => MaintainerEntity, maintainer => maintainer.pid)
+  @OneToOne(type => TagEntity, tag => tag.pid)
   public id: number;
 
   @Column({
@@ -38,11 +40,11 @@ export class PackageEntity {
   @Column({
     type: 'integer',
   })
-  userId: UserEntity['id'];
+  uid: UserEntity['id'];
 
   @OneToOne(type => UserEntity, user => user.id)
-  @JoinColumn()
-  user: UserEntity;
+  @JoinColumn({ name: 'uid' })
+  User: UserEntity;
 
   @Column({
     type: 'datetime',

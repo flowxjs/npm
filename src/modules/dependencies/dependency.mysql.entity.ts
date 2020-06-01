@@ -26,6 +26,7 @@ export class DependencyEntity {
   @Column({
     type: 'varchar',
     length: 8,
+    nullable: true,
   })
   // https://www.jianshu.com/p/511775598b2b
   // dependencies: null

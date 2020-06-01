@@ -21,7 +21,7 @@ export class MaintainerService {
     uid: MaintainerEntity['uid']
   ) {
     return repository.createQueryBuilder().where({
-      pid, userId: uid
+      pid, uid: uid
     }).getCount();
   }
 
@@ -31,7 +31,7 @@ export class MaintainerService {
     uid: MaintainerEntity['uid']
   ) {
     const maintainer = await repository.createQueryBuilder().where({
-      pid, userId: uid
+      pid, uid: uid
     }).getOne();
     if (!maintainer) {
       const mainer = new MaintainerEntity();
@@ -49,7 +49,7 @@ export class MaintainerService {
     pid: MaintainerEntity['pid']
   ) {
     const [maintainers, count] = await repository.createQueryBuilder().where({ 
-      pid, isDeleted: false 
+      pid
     }).getManyAndCount();
     if (!count) return;
     await Promise.all(maintainers.map(maintainer => repository.delete(maintainer)));

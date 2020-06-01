@@ -5,7 +5,7 @@ import { UserException } from '../exceptions/user.exception';
 import { TUserLoginInput, TUserLoginOutput, TUserInfoOutput } from '../dto/user.dto';
 import { UserService } from '../../../modules/user/user.service';
 import { AccountPipe } from '../pipes/account';
-import { buildCache, deleteCache } from '@flowx/redis';
+import { getCache } from '@flowx/redis';
 import { Authorization } from '../middlewares/authorize';
 import { IsLogined } from '../guards/is-logined';
 import { IsAdmin } from '../guards/is-admin';
@@ -60,7 +60,7 @@ export class HttpUserController {
     } else {
       await this.UserService.insert(userRepository, body.name, body.password, body.email, 0, body.name, undefined);
     }
-    await buildCache(UserService, 'userInfo', userRepository, body.name, 0);
+    await getCache(UserService, 'userInfo').build(userRepository, body.name, 0);
     return {
       ok: true,
       id: body._id,
@@ -103,7 +103,7 @@ export class HttpUserController {
     const userRepository = this.connection.getRepository(UserEntity);
     const user = await this.UserService.deleteUser(userRepository, id);
     if (user.affected) {
-      await deleteCache(UserService, 'userInfo', userRepository, user.raw.account, user.raw.referer);
+      await getCache(UserService, 'userInfo').delete(userRepository, user.raw.account, user.raw.referer);
     }
     return {
       ok: true,
@@ -123,7 +123,7 @@ export class HttpUserController {
   async SetUserAdmin(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const userRepository = this.connection.getRepository(UserEntity);
     const user = await this.UserService.setupAdmin(userRepository, id);
-    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
+    await getCache(UserService, 'userInfo').build(userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -142,7 +142,7 @@ export class HttpUserController {
   async CancelUserAdmin(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const userRepository = this.connection.getRepository(UserEntity);
     const user = await this.UserService.cancelAdmin(userRepository, id);
-    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
+    await getCache(UserService, 'userInfo').build(userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -161,7 +161,7 @@ export class HttpUserController {
   async setUserForbid(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const userRepository = this.connection.getRepository(UserEntity);
     const user = await this.UserService.forbid(userRepository, id);
-    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
+    await getCache(UserService, 'userInfo').build(userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -180,7 +180,7 @@ export class HttpUserController {
   async cancelUserForbid(@Params('id', AccountPipe, ParseIntegerPipe) id: number) {
     const userRepository = this.connection.getRepository(UserEntity);
     const user = await this.UserService.unForbid(userRepository, id);
-    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
+    await getCache(UserService, 'userInfo').build(userRepository, user.account, user.referer);
     return {
       ok: true,
       id: 'org.couchdb.user:' + user.account,
@@ -198,6 +198,6 @@ export class HttpUserController {
   async Logout(@Ctx() ctx:ParameterizedContext<any, THttpContext>) {
     const userRepository = this.connection.getRepository(UserEntity);
     const user = await this.UserService.logout(userRepository, ctx.user.id);
-    await buildCache(UserService, 'userInfo', userRepository, user.account, user.referer);
+    await getCache(UserService, 'userInfo').build(userRepository, user.account, user.referer);
   }
 }

@@ -6,6 +6,16 @@ import { KeywordEntity } from './keyword.mysql.entity';
 export class KeywordService {
   @inject('MySQL') connection: Connection;
 
+  async autoAddMany(
+    repository: Repository<KeywordEntity>, 
+    vid: KeywordEntity['vid'], 
+    words: KeywordEntity['word'][],
+  ) {
+    for (let i = 0; i < words.length; i++) {
+      await this.add(repository, vid, words[i]);
+    }
+  }
+
   async add(
     repository: Repository<KeywordEntity>, 
     vid: KeywordEntity['vid'], 
@@ -30,7 +40,7 @@ export class KeywordService {
     vid: KeywordEntity['vid']
   ) {
     const [keywords, count] = await repository.createQueryBuilder().where({ 
-      vid, isDeleted: false 
+      vid
     }).getManyAndCount();
     if (!count) return;
     await Promise.all(keywords.map(keyword => repository.delete(keyword)));

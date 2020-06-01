@@ -11,14 +11,11 @@ export interface TPackageInput {
       "name": string,
       "version": string,
       "description": string,
-      "scripts": {
+      "scripts"?: {
         [key: string]: string,
       },
-      "keywords": string[],
+      "keywords"?: string[],
       "license": string,
-      "devDependencies": {
-        [key: string]: string,
-      },
       "readme": string,
       "_id": string,
       "_nodeVersion": string,
@@ -27,7 +24,27 @@ export interface TPackageInput {
         "integrity": string,
         "shasum": string,
         "tarball": string
-      }
+      },
+      "repository"?: {
+        "type": string,
+        "url": string
+      },
+      "engines"?: {
+        [key: string]: string
+      },
+      "author"?: string | {
+        "name": string,
+        "url": string
+      },
+      "bugs"?: string | {
+        "url": string
+      },
+      "homepage"?: string,
+      "dependencies"?: { [key: string]: string },
+      "devDependencies"?: { [key: string]: string },
+      "peerDependencies"?: { [key: string]: string },
+      "optionalDependencies"?: { [key: string]: string },
+      "bundledDenpendencies"?: { [key: string]: string },
     }
   },
   "readme": string,

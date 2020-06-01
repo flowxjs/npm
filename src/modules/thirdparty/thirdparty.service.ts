@@ -57,11 +57,7 @@ export class ThirdPartyService {
     repository: Repository<ThirdpartyEntity>, 
     id: number
   ) {
-    const thirdparty = await repository.findOne(id, {
-      where: {
-        isDeleted: false,
-      }
-    });
+    const thirdparty = await repository.findOne(id);
     if (!thirdparty) throw new Error('找不到第三方插件');
     return {
       loginUrl: thirdparty.loginUrl,
