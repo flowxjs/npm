@@ -1,5 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn } from "typeorm";
-import { UserEntity } from '../user/user.mysql.entity';
+import { Entity, Column, PrimaryGeneratedColumn, Index, JoinColumn, ManyToOne } from "typeorm";
 import { PackageEntity } from '../package/package.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 
@@ -19,18 +18,10 @@ export class MaintainerEntity {
   })
   pid: PackageEntity['id'];
 
-  @OneToOne(type => PackageEntity, packages => packages.id)
-  @JoinColumn({ name: 'pid' })
-  Package: PackageEntity
-
   @Column({
     type: 'integer'
   })
   uid: number;
-
-  @OneToOne(type => UserEntity, user => user.id)
-  @JoinColumn({ name: 'uid' })
-  User: UserEntity;
 
   @Column({
     type: 'datetime',
@@ -41,4 +32,8 @@ export class MaintainerEntity {
     type: 'datetime',
   })
   utime: Date;
+
+  @ManyToOne(type => PackageEntity, packages => packages.id)
+  @JoinColumn({ name: 'pid' })
+  Package: PackageEntity
 }

@@ -1,7 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, Index } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, Index, ManyToOne } from "typeorm";
 import { DATABASE_NAME } from '../../app.config';
 import { PackageEntity } from "../package/package.mysql.entity";
-import { VersionEntity } from "../version/version.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -20,10 +19,6 @@ export class TagEntity {
   })
   pid: number;
 
-  @OneToOne(type => PackageEntity, packages => packages.id)
-  @JoinColumn({ name: 'pid' })
-  Package: PackageEntity;
-
   @Column({
     type: 'varchar',
     length: 40,
@@ -35,10 +30,6 @@ export class TagEntity {
   })
   vid: number;
 
-  @OneToOne(type => VersionEntity, version => version.id)
-  @JoinColumn({ name: 'vid' })
-  Version: VersionEntity;
-
   @Column({
     type: 'datetime',
   })
@@ -48,4 +39,8 @@ export class TagEntity {
     type: 'datetime',
   })
   utime: Date;
+
+  @ManyToOne(type => PackageEntity, packages => packages.id)
+  @JoinColumn({ name: 'pid' })
+  Package: PackageEntity;
 }

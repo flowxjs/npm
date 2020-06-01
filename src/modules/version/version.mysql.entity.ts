@@ -4,6 +4,7 @@ import { DATABASE_NAME } from '../../app.config';
 import { DependencyEntity } from "../dependencies/dependency.mysql.entity";
 import { KeywordEntity } from "../keywords/keyword.mysql.entity";
 import { TagEntity } from "../tags/tags.mysql.entity";
+import { MaintainerEntity } from "../maintainer/maintainer.mysql.entity";
 
 @Entity({
   synchronize: true,
@@ -24,10 +25,6 @@ export class VersionEntity {
     type: 'integer',
   })
   pid: PackageEntity['id'];
-
-  @OneToOne(type => PackageEntity, packages => packages.id)
-  @JoinColumn({ name: 'pid' })
-  package: PackageEntity
 
   @Column({
     type: 'varchar',
@@ -102,4 +99,14 @@ export class VersionEntity {
     type: 'datetime',
   })
   utime: Date;
+
+  @ManyToOne(type => PackageEntity, packages => packages.id)
+  @JoinColumn({ name: 'pid' })
+  Package: PackageEntity;
+
+  @OneToMany(type => DependencyEntity, dep => dep.vid)
+  Dependencies: DependencyEntity[];
+
+  @OneToMany(type => KeywordEntity, keyword => keyword.vid)
+  Keywords: KeywordEntity[];
 }

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn, OneToMany } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { VersionEntity } from "../version/version.mysql.entity";
@@ -13,9 +13,6 @@ import { TagEntity } from "../tags/tags.mysql.entity";
 @Index(['pathname'])
 export class PackageEntity {
   @PrimaryGeneratedColumn()
-  @OneToOne(type => VersionEntity, version => version.pid)
-  @OneToOne(type => MaintainerEntity, maintainer => maintainer.pid)
-  @OneToOne(type => TagEntity, tag => tag.pid)
   public id: number;
 
   @Column({
@@ -42,10 +39,6 @@ export class PackageEntity {
   })
   uid: UserEntity['id'];
 
-  @OneToOne(type => UserEntity, user => user.id)
-  @JoinColumn({ name: 'uid' })
-  User: UserEntity;
-
   @Column({
     type: 'datetime',
   })
@@ -55,4 +48,13 @@ export class PackageEntity {
     type: 'datetime',
   })
   utime: Date;
+
+  @OneToMany(type => VersionEntity, version => version.pid)
+  Versions: VersionEntity[];
+
+  @OneToMany(type => TagEntity, tag => tag.pid)
+  Tags: TagEntity[];
+
+  @OneToMany(type => MaintainerEntity, maintainer => maintainer.pid)
+  Maintainers: MaintainerEntity[];
 }

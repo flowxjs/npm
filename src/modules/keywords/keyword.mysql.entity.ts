@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, OneToOne, JoinColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, JoinColumn, ManyToOne } from "typeorm";
 import { VersionEntity } from '../version/version.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 
@@ -18,10 +18,6 @@ export class KeywordEntity {
   })
   vid: VersionEntity['id'];
 
-  @OneToOne(type => VersionEntity, version => version.id)
-  @JoinColumn({ name: 'vid' })
-  Version: VersionEntity;
-
   @Column({
     type: 'varchar',
     length: 40,
@@ -37,4 +33,8 @@ export class KeywordEntity {
     type: 'datetime',
   })
   utime: Date;
+
+  @ManyToOne(type => VersionEntity, version => version.id)
+  @JoinColumn({ name: 'vid' })
+  Version: VersionEntity;
 }
