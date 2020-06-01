@@ -334,8 +334,12 @@ export class HttpExtraController {
     return this.togglePackageActions(ctx, body, { scope, pkgname, version });
   }
 
-  private async togglePackageActions(ctx: THttpContext, body: TPackageInput, value: { scope: string, pkgname: string, version?: string }): Promise<TPackageNormalizeOutput> {
-    const res = await this.HttpPackageController.publish(ctx.user, value, body);
+  private async togglePackageActions(
+    ctx: THttpContext, 
+    body: TPackageInput, 
+    value: { scope: string, pkgname: string, version?: string }
+  ): Promise<TPackageNormalizeOutput> {
+    await this.HttpPackageController.publish(ctx.user, value, body);
     return {
       ok: true,
     }
