@@ -125,7 +125,7 @@ export class PackageService {
     let pkg = await this.findByPathname(repository, pathname);
     if (pkg) {
       pkg.utime = new Date();
-      return await repository.save(pkg);
+      return await this.getInfo(repository, await repository.save(pkg));
     }
     const { scope, namespace } = this.formatScopeAndNamespace(pathname);
     pkg = new PackageEntity();
@@ -135,7 +135,7 @@ export class PackageService {
     pkg.pathname = pathname;
     pkg.scope = scope;
     pkg.utime = new Date();
-    return await repository.save(pkg);
+    return await this.getInfo(repository, await repository.save(pkg));
   }
 
   /**
@@ -149,6 +149,21 @@ export class PackageService {
     const pkg = await this.findById(repository, id);
     if (!pkg) throw new Error('找不到模块');
     return await repository.delete(pkg);
+  }
+
+  private getInfo(
+    packageRepository: Repository<PackageEntity>,
+    pkg: PackageEntity
+  ) {
+    return packageRepository.createQueryBuilder(DATABASE_NAME + '_package')
+      .leftJoinAndSelect(DATABASE_NAME + '_package.Versions', DATABASE_NAME + '_version')
+      .leftJoinAndSelect(DATABASE_NAME + '_package.Tags', DATABASE_NAME + '_tags')
+      .leftJoinAndSelect(DATABASE_NAME + '_package.Maintainers', DATABASE_NAME + '_maintainer')
+      .where({ id: pkg.id })
+      .andWhere(DATABASE_NAME + '_version.pid=' + DATABASE_NAME + '_package.id')
+      .andWhere(DATABASE_NAME + '_tags.pid=' + DATABASE_NAME + '_package.id')
+      .andWhere(DATABASE_NAME + '_maintainer.pid=' + DATABASE_NAME + '_package.id')
+      .getOne();
   }
 
   @cacheable('package:${1}:${2}')

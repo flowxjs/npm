@@ -3,6 +3,7 @@ import { Connection, Repository } from 'typeorm';
 import { VersionEntity } from './version.mysql.entity';
 import { PackageEntity } from '../package/package.mysql.entity';
 import { v4 } from 'uuid';
+import { DATABASE_NAME } from '../../app.config';
 
 interface TVersionCompareTree {
   items?: {
@@ -34,7 +35,7 @@ export class VersionService {
     }).getMany();
   }
 
-  insert(
+  async insert(
     versionRepository: Repository<VersionEntity>, 
     uid: number,
     pid: number,
@@ -67,7 +68,10 @@ export class VersionService {
     version.code = code;
     version.rev = v4();
     version.attachment_size = size;
-    return versionRepository.save(version);
+    const _version = await versionRepository.save(version);
+    _version.Dependencies = [];
+    _version.Keywords = [];
+    return _version;
   }
 
   /**

@@ -119,7 +119,6 @@ export class HttpPackageController {
       ////////////////////////////////////////////////////
 
       // 插入协同开发者
-      if (!PackageChunk.Maintainers) PackageChunk.Maintainers = [];
       const maintainer = await this.MaintainerService.add(MaintainerRepository, PackageChunk.id, user.id);
       PackageChunk.Maintainers.push(maintainer);
 
@@ -140,9 +139,9 @@ export class HttpPackageController {
         pkg.versions[version].dist.integrity,
         attachment.length
       );
+      PackageChunk.Versions.push(Version);
 
       // 添加各种依赖
-      if (!Version.Dependencies) Version.Dependencies = [];
       Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].dependencies || {}, null, Version.id));
       Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].devDependencies || {}, 'dev', Version.id));
       Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].peerDependencies || {}, 'peer', Version.id));
@@ -150,18 +149,20 @@ export class HttpPackageController {
       Version.Dependencies.push(...await this.DependenciesService.autoAddMany(DependenciesRepository, pkg.versions[version].bundledDenpendencies || {}, 'bundled', Version.id));
 
       // 添加关键字
-      if (!Version.Keywords) Version.Keywords = [];
       Version.Keywords.push(...await this.KeywordService.autoAddMany(KeywordRepository, Version.id, pkg.versions[version].keywords || []));
-      const Versionner = await VersionRepository.save(Version);
-      if (!packageExists) {
-        if (!PackageChunk.Versions) PackageChunk.Versions = [];
-        PackageChunk.Versions.push(Versionner);
-        PackageChunk = await PackageRepository.save(PackageChunk);
-      }
-      // 添加dist-tags
-      if (!PackageChunk.Tags) PackageChunk.Tags = [];
-      PackageChunk.Tags.push(...await this.TagService.autoAddMany(TagRepository, VersionRepository, PackageChunk.id, distTags));
+
+      // 保存版本信息
+      await VersionRepository.save(Version);
+      
+      // 保存模块
       await PackageRepository.save(PackageChunk);
+
+      // 添加dist-tags
+      PackageChunk.Tags.push(...await this.TagService.autoAddMany(TagRepository, VersionRepository, PackageChunk.id, distTags));
+
+      // 更新外键
+      await PackageRepository.save(PackageChunk);
+
       await getCache(PackageService, 'info').build(PackageRepository, meta.scope, meta.pkgname);
       ensureDirSync(tarballDictionary);
       writeFileSync(tarballFilename, tarballBuffer);

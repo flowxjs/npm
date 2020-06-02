@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, OneToMany } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToMany, JoinColumn } from "typeorm";
 import { UserEntity } from '../user/user.mysql.entity';
 import { DATABASE_NAME } from '../../app.config';
 import { VersionEntity } from "../version/version.mysql.entity";
