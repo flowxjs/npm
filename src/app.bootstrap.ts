@@ -38,8 +38,15 @@ http.useController(HttpPackageController);
 
 // http.use(bodyParser());
 // http.use(async (ctx, next) => {
-//   container.logger.info(ctx.request.path, ctx.request.method, ctx.request.body);
-//   require('fs').writeFileSync(require('path').resolve(process.cwd(), 'b.log'), JSON.stringify(ctx.request.body, null, 2), 'utf8');
+//   if (ctx.method === 'GET') {
+//     container.logger.warn(ctx.request.path, ctx.request.method, ctx.query);
+//   } else {
+//     require('fs').writeFileSync(
+//       require('path').resolve(process.cwd(), 'delete-single.log'), 
+//       `pathname: ${ctx.request.path}\nmethod: ${ctx.request.method}\n${JSON.stringify(ctx.request.body, null, 2)}`, 
+//       'utf8'
+//     );
+//   }
 //   await next();
 // });
 
