@@ -11,6 +11,8 @@ import { HttpUserController } from './adapters/http/controller/user.controller';
 import { HttpExtraController } from './adapters/http/controller/extra.controller';
 import { HttpTestController } from './adapters/http/controller/test.controller';
 import { HttpPackageController } from './adapters/http/controller/package.controller';
+import { HttpUnPublishController } from './adapters/http/controller/unpublish.controller';
+import { HttpTarBallController } from './adapters/http/controller/tarball.controller';
 
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
@@ -35,20 +37,22 @@ http.useController(HttpUserController);
 http.useController(HttpExtraController);
 http.useController(HttpTestController);
 http.useController(HttpPackageController);
+http.useController(HttpUnPublishController);
+http.useController(HttpTarBallController);
 
 // http.use(bodyParser());
-// http.use(async (ctx, next) => {
-//   if (ctx.method === 'GET') {
-//     container.logger.warn(ctx.request.path, ctx.request.method, ctx.query);
-//   } else {
-//     require('fs').writeFileSync(
-//       require('path').resolve(process.cwd(), 'delete-single.log'), 
-//       `pathname: ${ctx.request.path}\nmethod: ${ctx.request.method}\n${JSON.stringify(ctx.request.body, null, 2)}`, 
-//       'utf8'
-//     );
-//   }
-//   await next();
-// });
+http.use(async (ctx, next) => {
+  const session = ctx.headers['npm-session'];
+  const method = ctx.method;
+  const pathname = ctx.request.path;
+  const filename = require('path').resolve(process.cwd(), 'logs', `${session}:${method}:${pathname}.log`.replace(/\//g, '#'));
+  if (['GET', 'DELETE'].indexOf(method) === -1) {
+    require('fs').writeFileSync(filename, `Body: ${JSON.stringify(ctx.request.body, null, 2)}`, 'utf8');
+  } else {
+    require('fs').writeFileSync(filename, `Query: ${JSON.stringify(ctx.query, null, 2)}`, 'utf8');
+  }
+  await next();
+});
 
 // Start All Service.
 container.bootstrap();

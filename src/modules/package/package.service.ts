@@ -331,4 +331,14 @@ export class PackageService {
     }
     return versions;
   }
+
+  async findPidByScopeAndPkgName(
+    packageRepository: Repository<PackageEntity>,
+    scope: string, pkgname: string
+  ) {
+    const Package = await packageRepository.createQueryBuilder().where({
+      scope, name: pkgname
+    }).getOne();
+    return Package ? Package.id : 0;
+  }
 }

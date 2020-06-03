@@ -1,0 +1,34 @@
+import { unlinkSync, existsSync } from 'fs-extra';
+import path from 'path';
+import { Controller, Delete, Params, BadGatewayException } from '@flowx/http';
+import { inject } from 'inversify';
+import { TypeRedis } from '@flowx/redis';
+import { NFS } from '../../../app.config';
+
+@Controller('/-/download')
+export class HttpTarBallController {
+  @inject('Redis') private redis: TypeRedis;
+  @Delete('/@:scope/:pkgname/:version/-rev/:rev')
+  async DeleteTarball(
+    @Params('scope') scope: string,
+    @Params('pkgname') pkgname: string,
+    @Params('version') version: string,
+    @Params('rev') rev: string
+  ) {
+    scope = '@' + scope;
+    const revRedis = await this.redis.get(rev);
+    if (revRedis !== scope + '/' + pkgname) {
+      throw new BadGatewayException('非法操作');
+    }
+    const tarballDictionary = path.resolve(NFS, scope, pkgname);
+    const tarballFilename = path.resolve(tarballDictionary, version);
+    if (existsSync(tarballFilename)) {
+      unlinkSync(tarballFilename);
+    }
+    await this.redis.del(rev);
+    return {
+      _id: `${scope}/${pkgname}@${version}`,
+      _rev: rev
+    }
+  }
+}

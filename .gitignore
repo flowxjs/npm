@@ -39,3 +39,4 @@ packages/**/*.js
 packages/**/*.d.ts
 
 npm/packages
+logs

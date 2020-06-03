@@ -4,6 +4,10 @@ import { VersionEntity } from './version.mysql.entity';
 import { PackageEntity } from '../package/package.mysql.entity';
 import { v4 } from 'uuid';
 import { DATABASE_NAME } from '../../app.config';
+import { DependenciesService } from '../dependencies/dependencies.service';
+import { KeywordService } from '../keywords/keyword.service';
+import { DependencyEntity } from '../dependencies/dependency.mysql.entity';
+import { KeywordEntity } from '../keywords/keyword.mysql.entity';
 
 interface TVersionCompareTree {
   items?: {
@@ -14,7 +18,9 @@ interface TVersionCompareTree {
 
 @injectable()
 export class VersionService {
-  @inject('MySQL') connection: Connection;
+  @inject('MySQL') private connection: Connection;
+  @inject(DependenciesService) private DependenciesService: DependenciesService;
+  @inject(KeywordService) private KeywordService: KeywordService;
 
   findByPidAndCode(
     repository: Repository<VersionEntity>,
@@ -125,5 +131,22 @@ export class VersionService {
     } else {
       if (root.max < MAJOR) return true;
     }
+  }
+
+  async delete(
+    versionRepository: Repository<VersionEntity>,
+    dependencyRepository: Repository<DependencyEntity>,
+    keywordRepository: Repository<KeywordEntity>,
+    vid: number,
+  ) {
+    await Promise.all([
+      this.DependenciesService.delete(dependencyRepository, vid),
+      this.KeywordService.delete(keywordRepository, vid)
+    ]);
+    return await versionRepository.delete(vid);
+  }
+
+  findLatestVersion(versionRepository: Repository<VersionEntity>) {
+    return versionRepository.createQueryBuilder().orderBy('utime', 'DESC').getOne();
   }
 }

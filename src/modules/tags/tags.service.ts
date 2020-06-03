@@ -47,4 +47,34 @@ export class TagService {
     return await repository.save(tags);
   }
 
+  getByVid(
+    repository: Repository<TagEntity>,
+    vid: number
+  ) {
+    return repository.createQueryBuilder().where({ vid }).getMany();
+  }
+
+  async deleteByIds(
+    repository: Repository<TagEntity>,
+    tags: TagEntity[]
+  ) {
+    const latestEntity = tags.filter(tag => tag.namespace === 'latest');
+    await Promise.all(tags.map(tag => repository.delete(tag)));
+    if (latestEntity.length) {
+      await Promise.all(
+        tags.filter(tag => tag.namespace !== 'latest')
+        .map(tag => repository.delete(tag))
+      );
+      return async (version: VersionEntity) => {
+        if (version && version.id) {
+          latestEntity[0].vid = version.id;
+          return await repository.save(latestEntity);
+        } else {
+          return await repository.delete(latestEntity[0]);
+        }
+      }
+    } else {
+      await Promise.all(tags.map(tag => repository.delete(tag)));
+    }
+  }
 }

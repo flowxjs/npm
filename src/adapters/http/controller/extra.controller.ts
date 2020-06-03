@@ -203,8 +203,11 @@ export class HttpExtraController {
    * @param pkgname 
    */
   @Get(PACKAGE_URI_MODE.NO_SCOPE)
-  async getPackageNoScope(@Params('pkgname') pkgname: string) {
-    return this.getPackage({ pkgname });
+  async getPackageNoScope(
+    @Params('pkgname') pkgname: string,
+    @Query('write') write?: 'true'
+  ) {
+    return this.getPackage({ pkgname }, write === 'true');
   }
 
   /**
@@ -216,8 +219,9 @@ export class HttpExtraController {
   async getPackageNoScopeWithVersion(
     @Params('pkgname') pkgname: string,
     @Params('version') version: string,
+    @Query('write') write?: 'true'
   ) {
-    return this.getPackage({ pkgname, version });
+    return this.getPackage({ pkgname, version }, write === 'true');
   }
 
   /**
@@ -226,10 +230,13 @@ export class HttpExtraController {
    * @param pkgname 
    */
   @Get(PACKAGE_URI_MODE.SCOPE_COMPOSITION)
-  async getPackageComposition(@Params('scope') scope: string) {
+  async getPackageComposition(
+    @Params('scope') scope: string,
+    @Query('write') write?: 'true'
+  ) {
     const value = decodeURIComponent(scope);
     const chunk = value.split('/');
-    return this.getPackage({ scope: chunk[0], pkgname: chunk[1] });
+    return this.getPackage({ scope: chunk[0], pkgname: chunk[1] }, write === 'true');
   }
 
   /**
@@ -242,6 +249,7 @@ export class HttpExtraController {
   async getPackageCompositionOrWithVersion(
     @Params('scope') scope: string,
     @Params('pkgname') pkgname: string,
+    @Query('write') write?: 'true'
   ) {
     let _scope: string, _pkgname: string, _version: string;
     if (/^\d+\.\d+\.\d+(\-.+)?$/.test(pkgname)) {
@@ -258,7 +266,7 @@ export class HttpExtraController {
       scope: _scope,
       pkgname: _pkgname,
       version: _version,
-    });
+    }, write === 'true');
   }
 
   /**
@@ -271,8 +279,9 @@ export class HttpExtraController {
     @Params('scope') scope: string,
     @Params('pkgname') pkgname: string,
     @Params('version') version: string,
+    @Query('write') write?: 'true'
   ) {
-    return this.getPackage({ scope, pkgname, version });
+    return this.getPackage({ scope, pkgname, version }, write === 'true');
   }
 
   @Put(PACKAGE_URI_MODE.SCOPE_COMPOSITION)
@@ -345,7 +354,7 @@ export class HttpExtraController {
     }
   }
 
-  private async getPackage(options: {scope?: string, pkgname: string, version?: string}) {
+  private async getPackage(options: {scope?: string, pkgname: string, version?: string}, write: boolean) {
     let pathname: string;
     const configRepository = this.connection.getRepository(ConfigEntity);
     const packageRepository = this.connection.getRepository(PackageEntity);
@@ -374,6 +383,10 @@ export class HttpExtraController {
       if (version) {
         if (!local.versions[version]) throw new NotFoundException('找不到模块版本');
         return local.versions[version];
+      }
+      if (write) {
+        // 如果使用write写入
+        await this.redis.set(local._rev, '@' + scope + '/' + pkgname, 30);
       }
       return local;
     } 
