@@ -68,7 +68,27 @@ export class HttpUserController {
   }
 
   /**
-   * 获取用户信息
+   * 获取NPM用户信息
+   * @param account 
+   * @param referer
+   */
+  @HttpCode(201)
+  @Get('/org.couchdb.user:account')
+  // http: http://0.0.0.0:3000/-/user/0/org.couchdb.user:evio
+  async getLocalUserInfo(@Params('account', AccountPipe) account: string): Promise<TUserInfoOutput> {
+    const userRepository = this.connection.getRepository(UserEntity);
+    const user = await this.UserService.userInfo(userRepository, account, 0);
+    if (!user) throw new BadRequestException('找不到用户');
+    return {
+      account,
+      name: user.nickname,
+      email: user.email,
+      avatar: user.avatar,
+    }
+  }
+
+  /**
+   * 获取WEB用户信息
    * @param account 
    * @param referer
    */

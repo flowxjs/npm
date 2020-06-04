@@ -14,6 +14,7 @@ import { HttpPublishController } from './adapters/http/controller/publish.contro
 import { HttpUnPublishController } from './adapters/http/controller/unpublish.controller';
 import { HttpTarBallController } from './adapters/http/controller/tarball.controller';
 import { HttpFetchController } from './adapters/http/controller/fetch.controller';
+import { HttpOwnerController } from './adapters/http/controller/owner.controller';
 
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
@@ -33,7 +34,7 @@ SetupRedis(container);
 // 安装 MySQL
 SetupMySQL(container, orm);
 
-// Register Http COntrollers:
+// Register Http Controllers:
 http.useController(HttpUserController);
 http.useController(HttpExtraController);
 http.useController(HttpTestController);
@@ -41,6 +42,7 @@ http.useController(HttpPublishController);
 http.useController(HttpUnPublishController);
 http.useController(HttpTarBallController);
 http.useController(HttpFetchController);
+http.useController(HttpOwnerController);
 
 // http.use(bodyParser());
 // http.use(async (ctx, next) => {
@@ -64,5 +66,6 @@ export interface THttpContext extends THttpDefaultContext {
   authToken?: string,
   authUsername?: string,
   authPassword?: string,
+  authReferer: number,
   user?: UserEntity,
 };

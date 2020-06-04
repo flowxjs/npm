@@ -1,10 +1,13 @@
 import { injectable, inject } from 'inversify';
 import { Connection, Repository } from 'typeorm';
 import { MaintainerEntity } from './maintainer.mysql.entity';
+import { UserService } from '../user/user.service';
+import { UserEntity } from '../user/user.mysql.entity';
 
 @injectable()
 export class MaintainerService {
-  @inject('MySQL') connection: Connection;
+  @inject('MySQL') private connection: Connection;
+  @inject(UserService) private UserService: UserService;
   
   findByPid(
     repository: Repository<MaintainerEntity>, 
@@ -53,5 +56,20 @@ export class MaintainerService {
     }).getManyAndCount();
     if (!count) return;
     await Promise.all(maintainers.map(maintainer => repository.delete(maintainer)));
+  }
+
+  async getMaintainerExistsByAccount(
+    UserRepository: Repository<UserEntity>,
+    MaintainerRepository: Repository<MaintainerEntity>, 
+    pid: number,
+    account: string,
+    referer: number
+  ): Promise<[MaintainerEntity?, UserEntity?]> {
+    const user = await this.UserService.findActiveUserByAccount(UserRepository, account, referer);
+    if (!user) return [];
+    const maintainer = await MaintainerRepository.createQueryBuilder().where({
+      pid, uid: user.id
+    }).getOne();
+    return [maintainer, user];
   }
 }

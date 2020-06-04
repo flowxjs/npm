@@ -16,11 +16,17 @@ export class IsLogined<T extends Koa.ParameterizedContext<any, THttpContext>> im
     switch (ctx.authType) {
       case 'Basic': 
         const [BasicActive, BasicUser] = await this.checkBasicAuthorize(ctx.authUsername, ctx.authPassword);
-        if (BasicActive) ctx.user = BasicUser;
+        if (BasicActive) {
+          ctx.user = BasicUser;
+          ctx.authReferer = 0;
+        }
         return BasicActive;
       case 'Bearer': 
-        const [BearerActive, BearerUser] = await this.checkBearerAuthorize(ctx.authToken);
-        if (BearerActive) ctx.user = BearerUser;
+        const [BearerActive, BearerUser, BearerReferer] = await this.checkBearerAuthorize(ctx.authToken);
+        if (BearerActive) {
+          ctx.user = BearerUser;
+          ctx.authReferer = BearerReferer;
+        }
         return BearerActive;
     }
     return false;
@@ -33,10 +39,10 @@ export class IsLogined<T extends Koa.ParameterizedContext<any, THttpContext>> im
     return [this.UserService.checkPassword(user.password, user.salt, password), user];
   }
 
-  private async checkBearerAuthorize(token: string): Promise<[boolean, UserEntity?]> {
+  private async checkBearerAuthorize(token: string): Promise<[boolean, UserEntity?, number?]> {
     const userRepository = this.connection.getRepository(UserEntity);
     const user = await this.UserService.findActiveUserByToken(userRepository, token);
     if (!user) return [false];
-    return [true, user];
+    return [true, user, user.referer];
   }
 }

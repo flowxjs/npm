@@ -20,6 +20,7 @@ import { MaintainerEntity } from '../../../modules/maintainer/maintainer.mysql.e
 import { IsLogined } from '../guards/is-logined';
 import { Authorization } from '../middlewares/authorize';
 import { HttpTarBallController } from './tarball.controller';
+import { HttpOwnerController } from './owner.controller';
 
 @Controller()
 export class HttpUnPublishController {
@@ -30,16 +31,30 @@ export class HttpUnPublishController {
   @inject(TagService) private TagService: TagService;
   @inject(MaintainerService) private MaintainerService: MaintainerService;
   @inject(HttpTarBallController) private HttpTarBallController: HttpTarBallController;
+  @inject(HttpOwnerController) private HttpOwnerController: HttpOwnerController;
 
   @Put('/@:pkgname/-rev/:rev')
   @useMiddleware(Authorization)
   @useGuard(IsLogined)
   @useMiddleware(BodyParser())
-  async UnPublishPackage(
+  Updatepackage(
     @Params('pkgname', DecodeURIComponentPipe) pkgname: string,
     @Params('rev') rev: string,
     @Body() body: TPackageInfomation,
     @Ctx() ctx: Koa.ParameterizedContext<any, THttpContext>
+  ) {
+    if (body.versions) {
+      return this.UnPublishPackage(pkgname, rev, body, ctx.user.id);
+    } else {
+      return this.HttpOwnerController.addOwner(pkgname, body, ctx.user.id, ctx.authReferer);
+    }
+  }
+
+  async UnPublishPackage(
+    pkgname: string,
+    rev: string,
+    body: TPackageInfomation,
+    uid: number
   ) {
     const scope = '@' + pkgname.split('/')[0];
     const name = pkgname.split('/')[1];
@@ -66,7 +81,6 @@ export class HttpUnPublishController {
     const deletedVersions = this.ComputedUnPublishVersions(versions, body.versions);
     if (deletedVersions.length !== 1) throw new PayloadTooLargeException('删除模块个数过多');
     const tags = await this.TagService.getByVid(TagRepository, deletedVersions[0].id);
-    const uid = ctx.user.id;
 
     // 如果没有在协作者列表中
     // 那么无法删除模块
