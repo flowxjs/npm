@@ -10,9 +10,10 @@ import { WebsiteClosed } from './adapters/http/middlewares/close';
 import { HttpUserController } from './adapters/http/controller/user.controller';
 import { HttpExtraController } from './adapters/http/controller/extra.controller';
 import { HttpTestController } from './adapters/http/controller/test.controller';
-import { HttpPackageController } from './adapters/http/controller/package.controller';
+import { HttpPublishController } from './adapters/http/controller/publish.controller';
 import { HttpUnPublishController } from './adapters/http/controller/unpublish.controller';
 import { HttpTarBallController } from './adapters/http/controller/tarball.controller';
+import { HttpFetchController } from './adapters/http/controller/fetch.controller';
 
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
@@ -36,9 +37,10 @@ SetupMySQL(container, orm);
 http.useController(HttpUserController);
 http.useController(HttpExtraController);
 http.useController(HttpTestController);
-http.useController(HttpPackageController);
+http.useController(HttpPublishController);
 http.useController(HttpUnPublishController);
 http.useController(HttpTarBallController);
+http.useController(HttpFetchController);
 
 // http.use(bodyParser());
 // http.use(async (ctx, next) => {

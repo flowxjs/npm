@@ -9,6 +9,10 @@ import { getCache } from '@flowx/redis';
 import { Authorization } from '../middlewares/authorize';
 import { IsLogined } from '../guards/is-logined';
 import { IsAdmin } from '../guards/is-admin';
+import { ParameterizedContext } from 'koa';
+import { THttpContext } from '../../../app.bootstrap';
+import { Connection } from 'typeorm';
+import { UserEntity } from '../../../modules/user/user.mysql.entity';
 import { 
   Controller, 
   HttpCode, 
@@ -21,10 +25,6 @@ import {
   useGuard,
   Ctx
 } from '@flowx/http';
-import { ParameterizedContext } from 'koa';
-import { THttpContext } from '../../../app.bootstrap';
-import { Connection } from 'typeorm';
-import { UserEntity } from '../../../modules/user/user.mysql.entity';
 
 @Controller('/-/user')
 @useException(UserException)

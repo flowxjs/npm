@@ -9,6 +9,7 @@ import { PackageEntity } from './package.mysql.entity';
 import { VersionEntity } from '../version/version.mysql.entity';
 import { cacheable } from '@flowx/redis';
 import { TPackageInfomation, TPackageVersions } from './package.dto';
+import { NotFoundException } from '@flowx/http';
 
 @injectable()
 export class PackageService {
@@ -195,6 +196,7 @@ export class PackageService {
   }
 
   private parsePackageInfo(data: PackageEntity) {
+    if (!data) throw new NotFoundException('您所查询的模块不存在');
     const [userObject, userArray] = this.parseMaintainers(data.Maintainers);
     const [versions, maps, time] = this.parseVersions(data.pathname, data.uid, userObject, data.Versions);
     const tags = this.parseTags(data.Tags, maps);

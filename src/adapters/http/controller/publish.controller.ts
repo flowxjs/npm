@@ -1,12 +1,11 @@
 import crypto from 'crypto';
-import url from 'url';
 import path from 'path';
+import BodyParser from 'koa-bodyparser';
 import { ensureDirSync, writeFileSync, removeSync } from 'fs-extra';
 import { inject } from 'inversify';
 import { Connection } from 'typeorm';
-import { Controller, BadRequestException, useException } from '@flowx/http';
 import { NFS } from '../../../app.config';
-import { TPackageInput } from '../dto/package.dto';
+import { TPackageInput, TPackageNormalizeOutput } from '../dto/package.dto';
 import { UserException } from '../exceptions/user.exception';
 import { MaintainerService } from '../../../modules/maintainer/maintainer.service';
 import { PackageService } from '../../../modules/package/package.service';
@@ -24,10 +23,21 @@ import { TagEntity } from '../../../modules/tags/tags.mysql.entity';
 import { ConfigService } from '../../../modules/configs/config.service';
 import { ConfigEntity } from '../../../modules/configs/config.mysql.entity';
 import { getCache } from '@flowx/redis';
+import { PACKAGE_URI_MODE } from '../dto/package.router.enum';
+import { Authorization } from '../middlewares/authorize';
+import { IsLogined } from '../guards/is-logined';
+import { 
+  Controller, 
+  useException, 
+  Body, Put, Params, Ctx,
+  useMiddleware, 
+  BadRequestException, 
+  useGuard,
+} from '@flowx/http';
 
 @Controller()
 @useException(UserException)
-export class HttpPackageController {
+export class HttpPublishController {
   @inject('MySQL') connection: Connection;
   @inject(MaintainerService) private MaintainerService: MaintainerService;
   @inject(PackageService) private PackageService: PackageService;
@@ -37,7 +47,77 @@ export class HttpPackageController {
   @inject(TagService) private TagService: TagService;
   @inject(ConfigService) private ConfigService: ConfigService;
 
-  async publish(user: THttpContext['user'], meta: {
+  @Put(PACKAGE_URI_MODE.SCOPE_COMPOSITION)
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useMiddleware(BodyParser())
+  packageActionComposition(
+    @Params('scope') scope: string,
+    @Body() body: TPackageInput,
+    @Ctx() ctx: THttpContext
+  ): Promise<TPackageNormalizeOutput> {
+    const value = decodeURIComponent(scope);
+    const chunk = value.split('/');
+    return this.togglePackageActions(ctx, body, {
+      scope: chunk[0],
+      pkgname: chunk[1],
+    });
+  }
+
+  @Put(PACKAGE_URI_MODE.SCOPE_NORMALIZE)
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useMiddleware(BodyParser())
+  packageActionCompositionOrWithVersion(
+    @Params('scope') scope: string,
+    @Params('pkgname') pkgname: string,
+    @Body() body: TPackageInput,
+    @Ctx() ctx: THttpContext
+  ) {
+    let _scope: string, _pkgname: string, _version: string;
+    if (/^\d+\.\d+\.\d+(\-.+)?$/.test(pkgname)) {
+      const value = decodeURIComponent(scope);
+      const chunk = value.split('/');
+      _version = pkgname;
+      _scope = chunk[0];
+      _pkgname = chunk[1];
+    } else {
+      _scope = scope;
+      _pkgname = pkgname;
+    }
+    return this.togglePackageActions(ctx, body, {
+      scope: _scope,
+      pkgname: _pkgname,
+      version: _version,
+    });
+  }
+
+  @Put(PACKAGE_URI_MODE.SCOPE_NORMALIZE_WITH_VERSION)
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  @useMiddleware(BodyParser())
+  packageActionWithVersion(
+    @Params('scope') scope: string,
+    @Params('pkgname') pkgname: string,
+    @Params('version') version: string,
+    @Body() body: TPackageInput,
+    @Ctx() ctx: THttpContext
+  ) {
+    return this.togglePackageActions(ctx, body, { scope, pkgname, version });
+  }
+
+  private async togglePackageActions(
+    ctx: THttpContext, 
+    body: TPackageInput, 
+    value: { scope: string, pkgname: string, version?: string }
+  ): Promise<TPackageNormalizeOutput> {
+    await this.publish(ctx.user, value, body);
+    return {
+      ok: true,
+    }
+  }
+
+  private async publish(user: THttpContext['user'], meta: {
     scope: string;
     pkgname: string;
     version?: string;
