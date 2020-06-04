@@ -98,7 +98,7 @@ export class HttpPackageController {
     try {
       const packageExists = !!(await this.PackageService.findByPathname(PackageRepository, meta.scope + '/' + meta.pkgname));
       let PackageChunk = await this.PackageService.insert(PackageRepository, meta.scope + '/' + meta.pkgname, user.id);
-      
+
       // 当已存在模块
       // 检测当前用户是否具有发布权限
       if (packageExists) {

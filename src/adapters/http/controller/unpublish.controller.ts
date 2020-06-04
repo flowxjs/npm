@@ -19,6 +19,7 @@ import { MaintainerService } from '../../../modules/maintainer/maintainer.servic
 import { MaintainerEntity } from '../../../modules/maintainer/maintainer.mysql.entity';
 import { IsLogined } from '../guards/is-logined';
 import { Authorization } from '../middlewares/authorize';
+import { HttpTarBallController } from './tarball.controller';
 
 @Controller()
 export class HttpUnPublishController {
@@ -28,6 +29,7 @@ export class HttpUnPublishController {
   @inject(VersionService) private VersionService: VersionService;
   @inject(TagService) private TagService: TagService;
   @inject(MaintainerService) private MaintainerService: MaintainerService;
+  @inject(HttpTarBallController) private HttpTarBallController: HttpTarBallController;
 
   @Put('/@:pkgname/-rev/:rev')
   @useMiddleware(Authorization)
@@ -109,9 +111,80 @@ export class HttpUnPublishController {
       _rev: rev,
     }
   }
+
   @Delete('/@:pkgname/-rev/:rev')
-  DeleteEmptyPackages() {
-    
+  @useMiddleware(Authorization)
+  @useGuard(IsLogined)
+  async DeleteAllPackages(
+    @Params('pkgname', DecodeURIComponentPipe) pkgname: string,
+    @Params('rev') rev: string,
+    @Ctx() ctx: Koa.ParameterizedContext<any, THttpContext>
+  ) {
+    const scope = '@' + pkgname.split('/')[0];
+    const name = pkgname.split('/')[1];
+
+    const revRedis = await this.redis.get(rev);
+    if (revRedis !== scope + '/' + name) {
+      throw new BadGatewayException('非法操作');
+    }
+
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+
+    const PackageRepository = runner.manager.getRepository(PackageEntity);
+    const VersionRepository = runner.manager.getRepository(VersionEntity);
+    const DependencyRepository = runner.manager.getRepository(DependencyEntity);
+    const keywordRepository = runner.manager.getRepository(KeywordEntity);
+    const TagRepository = runner.manager.getRepository(TagEntity);
+    const MaintainerRepository = runner.manager.getRepository(MaintainerEntity);
+
+    const Package = await this.PackageService.findByScopeAndName(PackageRepository, scope, name);
+    if (!Package) throw new BadRequestException('找不到模块');
+    const versions = await this.VersionService.findVersionsByPid(VersionRepository, Package.id);
+
+    const uid = ctx.user.id;
+
+    // 如果没有在协作者列表中
+    // 那么无法删除模块
+    const maintainerCount = await this.MaintainerService.getCountByPidAndUid(MaintainerRepository, Package.id, uid);
+    if (maintainerCount === 0) throw new NotAcceptableException('你没有权限删除此模块');
+    const tarballs: string[] = [];
+    try {
+      if (versions.length === 1) {
+        // 如果当前用户既不是模块发布者也不是版本发布者
+        // 那么无法删除模块
+        if (Package.uid !== uid && versions[0].uid !== uid) {
+          throw new NotAcceptableException('您没有删除模块的权限');
+        }
+      } else {
+        // 如果不是模块发布者无法删除
+        if (Package.uid !== uid) {
+          throw new NotAcceptableException('您没有删除模块的权限');
+        }
+      }
+      for (let i = 0; i < versions.length; i++) {
+        const version = versions[i];
+        await this.VersionService.delete(
+          VersionRepository, 
+          DependencyRepository, 
+          keywordRepository, 
+          version.id
+        );
+        tarballs.push(version.code + '.tgz');
+      }
+      await this.TagService.deleteByPid(TagRepository, Package.id);
+      await this.MaintainerService.delete(MaintainerRepository, Package.id);
+      await this.PackageService.delete(PackageRepository, Package.id);
+      await getCache(PackageService, 'info').delete(PackageRepository, scope, name);
+      tarballs.forEach(version => this.HttpTarBallController.deleteFile(scope, pkgname, version));
+      await this.redis.del(rev);
+      await runner.commitTransaction();
+    } catch (e) {
+      await runner.rollbackTransaction();
+    } finally {
+      await runner.release();
+    }
   }
 
   ComputedUnPublishVersions(

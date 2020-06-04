@@ -41,18 +41,18 @@ http.useController(HttpUnPublishController);
 http.useController(HttpTarBallController);
 
 // http.use(bodyParser());
-http.use(async (ctx, next) => {
-  const session = ctx.headers['npm-session'];
-  const method = ctx.method;
-  const pathname = ctx.request.path;
-  const filename = require('path').resolve(process.cwd(), 'logs', `${session}:${method}:${pathname}.log`.replace(/\//g, '#'));
-  if (['GET', 'DELETE'].indexOf(method) === -1) {
-    require('fs').writeFileSync(filename, `Body: ${JSON.stringify(ctx.request.body, null, 2)}`, 'utf8');
-  } else {
-    require('fs').writeFileSync(filename, `Query: ${JSON.stringify(ctx.query, null, 2)}`, 'utf8');
-  }
-  await next();
-});
+// http.use(async (ctx, next) => {
+//   const session = ctx.headers['npm-session'];
+//   const method = ctx.method;
+//   const pathname = ctx.request.path;
+//   const filename = require('path').resolve(process.cwd(), 'logs', `${session}:${method}:${pathname}.log`.replace(/\//g, '#'));
+//   if (['GET', 'DELETE'].indexOf(method) === -1) {
+//     require('fs').writeFileSync(filename, `Body: ${JSON.stringify(ctx.request.body, null, 2)}`, 'utf8');
+//   } else {
+//     require('fs').writeFileSync(filename, `Query: ${JSON.stringify(ctx.query, null, 2)}`, 'utf8');
+//   }
+//   await next();
+// });
 
 // Start All Service.
 container.bootstrap();

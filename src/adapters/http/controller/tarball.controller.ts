@@ -8,6 +8,7 @@ import { NFS } from '../../../app.config';
 @Controller('/-/download')
 export class HttpTarBallController {
   @inject('Redis') private redis: TypeRedis;
+
   @Delete('/@:scope/:pkgname/:version/-rev/:rev')
   async DeleteTarball(
     @Params('scope') scope: string,
@@ -20,15 +21,23 @@ export class HttpTarBallController {
     if (revRedis !== scope + '/' + pkgname) {
       throw new BadGatewayException('非法操作');
     }
-    const tarballDictionary = path.resolve(NFS, scope, pkgname);
-    const tarballFilename = path.resolve(tarballDictionary, version);
-    if (existsSync(tarballFilename)) {
-      unlinkSync(tarballFilename);
-    }
+    this.deleteFile(scope, pkgname, version);
     await this.redis.del(rev);
     return {
       _id: `${scope}/${pkgname}@${version}`,
       _rev: rev
+    }
+  }
+
+  deleteFile(
+    scope: string,
+    pkgname: string,
+    version: string,
+  ) {
+    const tarballDictionary = path.resolve(NFS, scope, pkgname);
+    const tarballFilename = path.resolve(tarballDictionary, version);
+    if (existsSync(tarballFilename)) {
+      unlinkSync(tarballFilename);
     }
   }
 }

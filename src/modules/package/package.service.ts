@@ -135,7 +135,11 @@ export class PackageService {
     pkg.pathname = pathname;
     pkg.scope = scope;
     pkg.utime = new Date();
-    return await this.getInfo(repository, await repository.save(pkg));
+    pkg = await repository.save(pkg);
+    pkg.Versions = [];
+    pkg.Tags = [];
+    pkg.Maintainers = [];
+    return pkg;
   }
 
   /**

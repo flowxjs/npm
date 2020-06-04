@@ -77,4 +77,13 @@ export class TagService {
       await Promise.all(tags.map(tag => repository.delete(tag)));
     }
   }
+
+  deleteByPid(
+    repository: Repository<TagEntity>,
+    pid: number
+  ) {
+    return repository.delete({
+      pid
+    });
+  }
 }
