@@ -8,7 +8,7 @@ $ npm run dev # 启动开发调试
 $ npm run start # 生产环境启动
 ```
 
-## Support
+## Command Support
 
 目前支持以下的命令: (cpm 泛指 私有源命令行工具)
 
