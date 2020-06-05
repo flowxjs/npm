@@ -204,7 +204,7 @@ export class PackageService {
     const readme = version.readme;
     time.created = data.ctime;
     time.modified = data.utime;
-    return {
+    return Object.assign({
       author: version.author,
       maintainers: userArray,
       versions: this.removeReadme(versions),
@@ -221,7 +221,7 @@ export class PackageService {
       _rev: version._rev,
       _npmUser: version.author,
       time,
-    };
+    }, version.deprecated ? { deprecated: version.deprecated } : {});
   }
 
   private parseMaintainers(maintainers: PackageEntity['Maintainers']): [
@@ -281,6 +281,9 @@ export class PackageService {
           tarball: url.resolve(DOMAIN, path.join('/-/download', '.', version.tarball)),
         }
       }, deps);
+      if (version.deprecated) {
+        res[version.code].deprecated = version.deprecated;
+      }
       maps[version.id] = version.code;
     }
     return [res, maps, time];

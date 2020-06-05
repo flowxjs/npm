@@ -93,6 +93,11 @@ export class VersionEntity {
   rev: string;
 
   @Column({
+    type: 'text',
+  })
+  deprecated: string
+
+  @Column({
     type: 'datetime',
   })
   ctime: Date;

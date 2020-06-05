@@ -77,6 +77,7 @@ export class HttpOwnerController {
       await runner.commitTransaction();
     } catch(e) {
       await runner.rollbackTransaction();
+      return { error: e.message }
     } finally {
       await runner.release();
     }

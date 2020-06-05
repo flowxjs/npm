@@ -45,6 +45,7 @@ export interface TPackageInput {
       "peerDependencies"?: { [key: string]: string },
       "optionalDependencies"?: { [key: string]: string },
       "bundledDenpendencies"?: { [key: string]: string },
+      deprecated?: string
     }
   },
   "readme": string,

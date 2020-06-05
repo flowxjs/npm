@@ -117,6 +117,7 @@ export class HttpUnPublishController {
       await runner.commitTransaction();
     } catch(e) {
       await runner.rollbackTransaction();
+      throw e;
     } finally {
       await runner.release();
     }
@@ -198,6 +199,7 @@ export class HttpUnPublishController {
       await runner.commitTransaction();
     } catch (e) {
       await runner.rollbackTransaction();
+      throw e;
     } finally {
       await runner.release();
     }

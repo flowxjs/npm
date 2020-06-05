@@ -117,21 +117,65 @@ export class HttpPublishController {
     }
   }
 
+  private async Deprecate(
+    scope: string,
+    pkgname: string,
+    versions: TPackageInput['versions']
+  ) {
+    const runner = this.connection.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+
+    try{
+      const PackageRepository = runner.manager.getRepository(PackageEntity);
+      const VersionRepository = runner.manager.getRepository(VersionEntity);
+      const Package = await this.PackageService.findByScopeAndName(PackageRepository, scope, pkgname);
+      if (!Package) throw new BadRequestException('找不到模块');
+
+      const keys = Object.keys(versions);
+      const DeprecateVersionNames = keys.filter(key => versions[key].deprecated);
+      for (let i = 0; i < DeprecateVersionNames.length; i++) {
+        const versionName = DeprecateVersionNames[i];
+        const version = await this.VersionService.findByPidAndCode(VersionRepository, Package.id, versionName);
+        version.deprecated = versions[versionName].deprecated;
+        await VersionRepository.save(version);
+      }
+      await getCache(PackageService, 'info').build(PackageRepository, scope, pkgname);
+      await runner.commitTransaction();
+    } catch(e) {
+      await runner.rollbackTransaction();
+      throw e;
+    } finally {
+      await runner.release();
+    }
+  }
+
   private async publish(user: THttpContext['user'], meta: {
     scope: string;
     pkgname: string;
     version?: string;
   }, pkg: TPackageInput) {
-    const filename = Object.keys(pkg._attachments)[0];
+    meta.scope = '@' + meta.scope;
     const version = Object.keys(pkg.versions)[0];
+    // 当确定版本个数大于2个
+    // 则必定是废弃模式
+    if (Object.keys(pkg.versions).length > 1) {
+      return await this.Deprecate(meta.scope, meta.pkgname, pkg.versions);
+    }
+
+    // 当有废弃字段，就是废弃模式
+    if (pkg.versions[version].deprecated) {
+      return await this.Deprecate(meta.scope, meta.pkgname, {
+        [version]: pkg.versions[version]
+      });
+    }
+    const filename = Object.keys(pkg._attachments)[0];
     const distTags = pkg['dist-tags'] || {};
     const attachment = pkg._attachments[filename];
-    
+
     if (meta.version && meta.version !== version) {
       throw new BadRequestException('错误的版本');
     }
-
-    meta.scope = '@' + meta.scope;
 
     // 将上传的包的base64数据转换成Buffer流
     // 以便使用fs存储到磁盘上

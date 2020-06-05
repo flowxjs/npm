@@ -38,4 +38,5 @@ export interface TPackageInfomation {
   },
   ['dist-tags']?: TPackageVersions,
   _rev: string,
+  deprecated?: string
 }
