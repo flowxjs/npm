@@ -20,7 +20,7 @@ import { HttpDistTagController } from './adapters/http/controller/dist-tag.contr
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
 
-import bodyParser from 'koa-bodyparser';
+// import bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
@@ -46,19 +46,19 @@ http.useController(HttpFetchController);
 http.useController(HttpOwnerController);
 http.useController(HttpDistTagController);
 
-http.use(bodyParser());
-http.use(async (ctx, next) => {
-  const session = ctx.headers['npm-session'];
-  const method = ctx.method;
-  const pathname = ctx.request.path;
-  const filename = require('path').resolve(process.cwd(), 'logs', `${session}:${method}:${pathname}.log`.replace(/\//g, '#'));
-  if (['GET', 'DELETE'].indexOf(method) === -1) {
-    require('fs').writeFileSync(filename, `Body: ${JSON.stringify(ctx.request.body, null, 2)}`, 'utf8');
-  } else {
-    require('fs').writeFileSync(filename, `Query: ${JSON.stringify(ctx.query, null, 2)}`, 'utf8');
-  }
-  await next();
-});
+// http.use(bodyParser());
+// http.use(async (ctx, next) => {
+//   const session = ctx.headers['npm-session'];
+//   const method = ctx.method;
+//   const pathname = ctx.request.path;
+//   const filename = require('path').resolve(process.cwd(), 'logs', `${session}:${method}:${pathname}.log`.replace(/\//g, '#'));
+//   if (['GET', 'DELETE'].indexOf(method) === -1) {
+//     require('fs').writeFileSync(filename, `Body: ${JSON.stringify(ctx.request.body, null, 2)}`, 'utf8');
+//   } else {
+//     require('fs').writeFileSync(filename, `Query: ${JSON.stringify(ctx.query, null, 2)}`, 'utf8');
+//   }
+//   await next();
+// });
 
 // Start All Service.
 container.bootstrap();
