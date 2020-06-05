@@ -149,4 +149,11 @@ export class VersionService {
   findLatestVersion(versionRepository: Repository<VersionEntity>) {
     return versionRepository.createQueryBuilder().orderBy('utime', 'DESC').getOne();
   }
+
+  findLatestVersionExculeVid(
+    versionRepository: Repository<VersionEntity>,
+    vid: number
+  ) {
+    return versionRepository.createQueryBuilder().where('id<>:vid', { vid }).orderBy('utime', 'DESC').getOne();
+  }
 }

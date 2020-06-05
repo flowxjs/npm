@@ -1,6 +1,6 @@
 import Koa from 'koa';
 import BodyParser from 'koa-bodyparser';
-import { Controller, Put, Delete, Params, Body, BadRequestException, PayloadTooLargeException, Ctx, NotAcceptableException, useMiddleware, useGuard, BadGatewayException } from '@flowx/http';
+import { Controller, Put, Delete, Params, Body, BadRequestException, PayloadTooLargeException, Ctx, NotAcceptableException, useMiddleware, useGuard, BadGatewayException, useException } from '@flowx/http';
 import { DecodeURIComponentPipe } from '../pipes/decodeURIComponent';
 import { TPackageInfomation } from '../../../modules/package/package.dto';
 import { inject } from 'inversify';
@@ -21,8 +21,10 @@ import { IsLogined } from '../guards/is-logined';
 import { Authorization } from '../middlewares/authorize';
 import { HttpTarBallController } from './tarball.controller';
 import { HttpOwnerController } from './owner.controller';
+import { UserException } from '../exceptions/user.exception';
 
 @Controller()
+@useException(UserException)
 export class HttpUnPublishController {
   @inject('Redis') private redis: TypeRedis;
   @inject('MySQL') private connection: Connection;

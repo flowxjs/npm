@@ -86,4 +86,14 @@ export class TagService {
       pid
     });
   }
+
+  getByPidAndNameSpace(
+    repository: Repository<TagEntity>,
+    pid: number,
+    namespace: string,
+  ) {
+    return repository.createQueryBuilder().where({
+      pid, namespace
+    }).getOne();
+  }
 }

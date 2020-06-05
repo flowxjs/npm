@@ -15,11 +15,12 @@ import { HttpUnPublishController } from './adapters/http/controller/unpublish.co
 import { HttpTarBallController } from './adapters/http/controller/tarball.controller';
 import { HttpFetchController } from './adapters/http/controller/fetch.controller';
 import { HttpOwnerController } from './adapters/http/controller/owner.controller';
+import { HttpDistTagController } from './adapters/http/controller/dist-tag.controller';
 
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
 
-// import bodyParser from 'koa-bodyparser';
+import bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
 const http = new Http<THttpContext>(container);
@@ -43,6 +44,7 @@ http.useController(HttpUnPublishController);
 http.useController(HttpTarBallController);
 http.useController(HttpFetchController);
 http.useController(HttpOwnerController);
+http.useController(HttpDistTagController);
 
 // http.use(bodyParser());
 // http.use(async (ctx, next) => {

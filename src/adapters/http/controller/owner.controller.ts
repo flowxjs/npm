@@ -1,4 +1,4 @@
-import { Controller, Get, BadRequestException, NotAcceptableException } from '@flowx/http';
+import { Controller, Get, BadRequestException, NotAcceptableException, useException } from '@flowx/http';
 import { TPackageInfomation } from '../../../modules/package/package.dto';
 import { inject } from 'inversify';
 import { Connection } from 'typeorm';
@@ -8,8 +8,10 @@ import { MaintainerService } from '../../../modules/maintainer/maintainer.servic
 import { MaintainerEntity } from '../../../modules/maintainer/maintainer.mysql.entity';
 import { UserEntity } from '../../../modules/user/user.mysql.entity';
 import { getCache } from '@flowx/redis';
+import { UserException } from '../exceptions/user.exception';
 
 @Controller()
+@useException(UserException)
 export class HttpOwnerController {
   @inject('MySQL') private connection: Connection;
   @inject(PackageService) private PackageService: PackageService;

@@ -219,6 +219,7 @@ export class PackageService {
       repository: version.repository,
       _id: data.pathname,
       _rev: version._rev,
+      _npmUser: version.author,
       time,
     };
   }
