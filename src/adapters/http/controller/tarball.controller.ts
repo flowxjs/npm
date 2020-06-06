@@ -1,6 +1,6 @@
-import { unlinkSync, existsSync } from 'fs-extra';
+import { unlinkSync, existsSync, createReadStream } from 'fs-extra';
 import path from 'path';
-import { Controller, Delete, Params, BadGatewayException } from '@flowx/http';
+import { Controller, Delete, Params, BadGatewayException, Get, NotFoundException } from '@flowx/http';
 import { inject } from 'inversify';
 import { TypeRedis } from '@flowx/redis';
 import { NFS } from '../../../app.config';
@@ -8,6 +8,20 @@ import { NFS } from '../../../app.config';
 @Controller('/-/download')
 export class HttpTarBallController {
   @inject('Redis') private redis: TypeRedis;
+
+  @Get('/@:scope/:pkgname/:version')
+  async Download(
+    @Params('scope') scope: string,
+    @Params('pkgname') pkgname: string,
+    @Params('version') version: string,
+  ) {
+    scope = '@' + scope;
+    const tarballDictionary = path.resolve(NFS, scope, pkgname);
+    const tarballFilename = path.resolve(tarballDictionary, version);
+    if (!tarballFilename.endsWith('.tgz')) throw new BadGatewayException('invaild package suffix extion.');
+    if (!existsSync(tarballFilename)) throw new NotFoundException('找不到模块包');
+    return createReadStream(tarballFilename);
+  }
 
   @Delete('/@:scope/:pkgname/:version/-rev/:rev')
   async DeleteTarball(
