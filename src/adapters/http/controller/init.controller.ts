@@ -44,7 +44,6 @@ export class HttpInitController {
     @Body() body: TInitData,
     @Headers('npm-session') session: string
   ) {
-    console.log(session, body)
     const value = await this.redis.get('setup:' + session);
     value && await this.redis.del('setup:' + session);
     if (value !== body.hash) throw new BadGatewayException();

@@ -29,3 +29,16 @@ $ npm run start # 生产环境启动
 - [x] `cpm dist-tag ls [<pkg>]` 查看所有dist-tags
 - [ ] `cpm access public [<package>]` 未知
 - [ ] `cpm access restricted [<package>]` 未知
+
+## Use NPC
+
+[NPC](https://github.com/flowxjs/npm-cli) 主要用来辅助开发的工具，它具备NPM所有功能，但也包含对本程序的额外处理功能（初始化等）。
+
+```bash
+$ npm i -g @flowx/npm-cli
+$ npc r
+# type the registry url and select yes to confirm
+$ npc setup
+# test:
+$ npc view react
+```
