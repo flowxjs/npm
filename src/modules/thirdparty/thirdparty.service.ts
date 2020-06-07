@@ -10,10 +10,7 @@ export class ThirdPartyService {
   async insert(
     repository: Repository<ThirdpartyEntity>, 
     code: string,
-    icon: string,
-    AppId: string,
-    AppSecret: string,
-    CorpId: string,
+    extra: string,
     name: string, 
     loginUrl: string, 
     doneUrl: string, 
@@ -21,19 +18,10 @@ export class ThirdPartyService {
     checkTimeDelay: number
   ) {
     let thirdparty = await repository.createQueryBuilder().where({ code }).getOne();
-    if (thirdparty) {
-      return await this.update(
-        repository,
-        thirdparty.id,
-        icon, AppId, AppSecret, CorpId, loginUrl, doneUrl,loginTimeExpire, checkTimeDelay
-      );
-    }
+    if (thirdparty) return thirdparty;
     thirdparty = new ThirdpartyEntity();
     thirdparty.code = code;
-    thirdparty.icon = icon;
-    thirdparty.CorpId = CorpId;
-    thirdparty.AppId = AppId;
-    thirdparty.AppSecret = AppSecret;
+    thirdparty.extra = extra;
     thirdparty.ctime = new Date();
     thirdparty.doneUrl = doneUrl;
     thirdparty.loginUrl = loginUrl;
@@ -56,10 +44,8 @@ export class ThirdPartyService {
   async update(
     repository: Repository<ThirdpartyEntity>, 
     id: number, 
-    icon: string,
-    AppId: string,
-    AppSecret: string,
-    CorpId: string,
+    extra: string,
+    name: string,
     loginUrl: string, 
     doneUrl: string, 
     loginTimeExpire: number, 
@@ -67,14 +53,13 @@ export class ThirdPartyService {
   ) {
     const thirdparty = await repository.findOne(id);
     if (!thirdparty) throw new Error('找不到第三方插件');
-    thirdparty.icon = icon;
-    thirdparty.CorpId = CorpId;
-    thirdparty.AppId = AppId;
-    thirdparty.AppSecret = AppSecret;
+    thirdparty.extra = extra;
+    thirdparty.namespace = name;
     thirdparty.loginUrl = loginUrl;
     thirdparty.doneUrl = doneUrl;
     thirdparty.loginTimeExpire = loginTimeExpire;
     thirdparty.checkTimeDelay = checkTimeDelay;
+    thirdparty.utime = new Date();
     return await repository.save(thirdparty);
   }
 
@@ -86,10 +71,7 @@ export class ThirdPartyService {
     const thirdparty = await repository.findOne(id);
     if (!thirdparty) throw new Error('找不到第三方插件');
     return {
-      icon: thirdparty.icon,
-      AppId: thirdparty.AppId,
-      AppSecret: thirdparty.AppSecret,
-      CorpId: thirdparty.CorpId,
+      extra: JSON.parse(thirdparty.extra),
       loginUrl: thirdparty.loginUrl,
       doneUrl: thirdparty.doneUrl,
       loginTimeExpire: thirdparty.loginTimeExpire,

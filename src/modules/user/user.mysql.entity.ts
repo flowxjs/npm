@@ -55,6 +55,9 @@ export class UserEntity {
   // 来源
   referer: number;
 
+  openid: string;
+  unionid: string;
+
   @Column({
     type: 'integer',
     default: 1,

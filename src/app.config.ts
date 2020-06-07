@@ -46,4 +46,17 @@ export const REDIS_CONFIGS = {
   keyPrefix: DATABASE_NAME + ':',
 }
 
+export const PLUGINS = {
+  DINGTALK: {
+    login: {
+      appid: 'dingoauqykufg1t7afqmtp',
+      appsecret: 'Kkqsdt8mHALUkPmTMH6go2XB_OxGN6Yoa2ktxNuRgVe1wp7c988Plx6j-KecyChO'
+    },
+    app: {
+      appkey: 'dingr6eh1fizaidjmhpk',
+      appsecret: 'v1BQiOoONRDWP4xlN27BJQajXCU46sjfjgf6RaKnTBpDXrzKfIvLKkXQTxYUFUj8'
+    }
+  }
+}
+
 ensureDirSync(NFS);

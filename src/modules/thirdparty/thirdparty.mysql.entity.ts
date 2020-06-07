@@ -39,27 +39,9 @@ export class ThirdpartyEntity {
   checkTimeDelay: number;
 
   @Column({
-    type: 'varchar',
-    length: 255
+    type: 'text'
   })
-  CorpId: string;
-
-  @Column({
-    type: 'varchar',
-    length: 255
-  })
-  AppId: string;
-
-  @Column({
-    type: 'text',
-  })
-  icon: string;
-
-  @Column({
-    type: 'varchar',
-    length: 255
-  })
-  AppSecret: string;
+  extra: string;
 
   @Column({
     type: 'varchar',

@@ -21,6 +21,10 @@ import { HttpInitController } from './adapters/http/controller/init.controller';
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
 
+// plugins:
+import { Setup as DingTalkSetup } from './plugins/dingtalk';
+import { PLUGINS } from './app.config';
+
 // import bodyParser from 'koa-bodyparser';
 
 const container = new TypeContainer();
@@ -47,6 +51,9 @@ http.useController(HttpFetchController);
 http.useController(HttpOwnerController);
 http.useController(HttpDistTagController);
 http.useController(HttpInitController);
+
+// install plugins:
+DingTalkSetup(http, PLUGINS.DINGTALK);
 
 // http.use(bodyParser());
 // http.use(async (ctx, next) => {

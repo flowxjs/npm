@@ -64,7 +64,9 @@ export class HttpExtraController {
     }
     if (!session) throw new BadRequestException('请使用NPM的命令行工具登录');
     const thirdparty = await this.ThirdPartyService.query(thirdpartyRepository, configs.loginType);
-    await this.redis.set(`thirdparty:${session}`, body.hostname, thirdparty.loginTimeExpire);
+    await this.redis.set(`thirdparty:${session}`, {
+      hostname: body.hostname,
+    }, thirdparty.loginTimeExpire);
     return {
       loginUrl: url.resolve(configs.domain, `/-/v1/weblogin/authorize?session=${session}&hostname=${encodeURIComponent(body.hostname)}`),
       doneUrl: url.resolve(configs.domain, `/-/v1/weblogin/check?session=${session}`),
@@ -90,8 +92,11 @@ export class HttpExtraController {
     const configs = await this.ConfigService.query(configRepository);
     if (!configs.loginType) throw new BadRequestException('系统不允许使用外部授权');
     const thirdparty = await this.ThirdPartyService.query(thirdpartyRepository, configs.loginType);
+    
     return {
-      url: thirdparty.loginUrl.replace('{session}', session),
+      url: thirdparty.loginUrl
+        .replace('{AppId}', thirdparty.extra.login.appid)
+        .replace('{Session}', session),
     }
   }
 
@@ -120,7 +125,7 @@ export class HttpExtraController {
       content?: { account: string, avatar: string, email: string, token: string, nickname?: string } 
     }>((resolve, reject) => {
       request.get(
-        thirdparty.doneUrl.replace('{session}', session), 
+        decodeURIComponent(thirdparty.doneUrl).replace('{Session}', session), 
         (err: Error, response: request.Response, body: string) => {
           if (err) return reject(err);
           if (!body) return resolve({ status: 202 });
@@ -140,6 +145,7 @@ export class HttpExtraController {
       // 删除登录时候的redis缓存标识位
       await this.redis.del(`thirdparty:${session}`);
       // 插入数据库
+      console.log(res.content)
       const user = await this.UserService.insert(
         userRepository,
         res.content.account, 
