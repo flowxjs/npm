@@ -14,7 +14,7 @@ import { ThirdpartyEntity } from './modules/thirdparty/thirdparty.mysql.entity';
 import { TagEntity } from './modules/tags/tags.mysql.entity';
 
 export function SetupMySQL(container: TypeContainer, orm: TypeORM) {
-  const [setMySQLBinding, setMySQLInitializer] = orm.useConnection({
+  const [setMySQLBinding] = orm.useConnection({
     type: "mysql",
     host: MYSQL_CONFIGS.host,
     port: MYSQL_CONFIGS.port,
@@ -36,21 +36,21 @@ export function SetupMySQL(container: TypeContainer, orm: TypeORM) {
     // logging: true,
   });
   setMySQLBinding('MySQL');
-  setMySQLInitializer(async connection => {
-    const count = await connection.manager.count(ConfigEntity);
-    container.logger.warn('Count', 'configs table has %d data chunk.', count);
-    if (count === 0) {
-      const time = Date.now();
-      const configs = new ConfigEntity();
-      configs.close = false;
-      configs.domain = DOMAIN;
-      configs.loginType = 0;
-      configs.registries = '["https://registry.npmjs.org/"]';
-      configs.scopes = '["@node"]';
-      await connection.manager.save(configs);
-      container.logger.warn('', 'Default configuration added in %dms.', Date.now() - time);
-    } else {
-      container.logger.warn('Count', 'Skip add default configuration process.');
-    }
-  });
+  // setMySQLInitializer(async connection => {
+  //   const count = await connection.manager.count(ConfigEntity);
+  //   container.logger.warn('Count', 'configs table has %d data chunk.', count);
+  //   if (count === 0) {
+  //     const time = Date.now();
+  //     const configs = new ConfigEntity();
+  //     configs.close = false;
+  //     configs.domain = DOMAIN;
+  //     configs.loginType = 0;
+  //     configs.registries = '["https://registry.npmjs.org/"]';
+  //     configs.scopes = '["@node"]';
+  //     await connection.manager.save(configs);
+  //     container.logger.warn('', 'Default configuration added in %dms.', Date.now() - time);
+  //   } else {
+  //     container.logger.warn('Count', 'Skip add default configuration process.');
+  //   }
+  // });
 }
