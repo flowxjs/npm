@@ -117,7 +117,10 @@ export class HttpFetchController {
     const configRepository = this.connection.getRepository(ConfigEntity);
     const packageRepository = this.connection.getRepository(PackageEntity);
     const { scope, pkgname, version } = options;
-    const configs = await this.ConfigService.query(configRepository);
+    const configs = await this.ConfigService.query(configRepository).catch(e => {
+      if (e.message === '找不到配置数据') return { registries: ['http://registry.npmjs.org/'], scopes: [] };
+      throw e;
+    });
     const prefixes = configs.registries;
     if (scope) {
       if (version) {

@@ -8,7 +8,7 @@ import { THttpContext } from '../../../app.bootstrap';
 import { ConfigService } from '../../../modules/configs/config.service';
 import { UserService } from '../../../modules/user/user.service';
 import { UserEntity } from '../../../modules/user/user.mysql.entity';
-import { TypeRedis } from '@flowx/redis';
+import { TypeRedis, getCache } from '@flowx/redis';
 import Sha1 from 'sha1';
 
 interface TInitData {
@@ -21,7 +21,7 @@ interface TInitData {
 }
 
 @Controller('/-/init')
-export class HttpTestController {
+export class HttpInitController {
   @inject('MySQL') private connection: Connection;
   @inject('Redis') private redis: TypeRedis;
   @inject(ConfigService) private ConfigService: ConfigService;
@@ -44,6 +44,7 @@ export class HttpTestController {
     @Body() body: TInitData,
     @Headers('npm-session') session: string
   ) {
+    console.log(session, body)
     const value = await this.redis.get('setup:' + session);
     value && await this.redis.del('setup:' + session);
     if (value !== body.hash) throw new BadGatewayException();
@@ -60,6 +61,8 @@ export class HttpTestController {
         await this.ConfigService.init(ConfigsRepository, body.registries, body.scope);
         const user = await this.UserService.insert(UserRepository, body.username, body.password, body.email, 0);
         await this.UserService.setupAdmin(UserRepository, user.id);
+        await getCache(ConfigService, 'query').build(ConfigsRepository);
+        await getCache(UserService, 'userInfo').build(UserRepository, user.account, user.referer);
         await runner.commitTransaction();
         ctx.logger.warn('', 'Default configuration added in %dms.', Date.now() - time);
       } catch(e) {
@@ -68,8 +71,14 @@ export class HttpTestController {
       } finally {
         await runner.release();
       }
+      return {
+        ok: true
+      }
     } else {
       ctx.logger.warn('Count', 'Skip add default configuration process.');
+      return {
+        ok: false
+      }
     }
   }
 }

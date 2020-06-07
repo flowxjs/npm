@@ -10,7 +10,6 @@ import { TagEntity } from "../tags/tags.mysql.entity";
   name: DATABASE_NAME + '_package',
 })
 @Index(['scope', 'name'])
-@Index(['pathname'])
 export class PackageEntity {
   @PrimaryGeneratedColumn()
   public id: number;

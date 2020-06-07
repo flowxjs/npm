@@ -8,7 +8,10 @@ import { ConfigEntity } from "../../../modules/configs/config.mysql.entity";
 export async function WebsiteClosed(ctx: Context, next: Next) {
   const connection = TypeServiceInjection.get<Connection>('MySQL');
   const configsRepository = connection.getRepository(ConfigEntity);
-  const configs = await TypeServiceInjection.get(ConfigService).query(configsRepository);
+  const configs = await TypeServiceInjection.get(ConfigService).query(configsRepository).catch(e => {
+    if (e.message === '找不到配置数据') return {close : false};
+    throw e;
+  });
   if (!configs.close) return await next();
   throw new BadGatewayException('Sorry, this website is closed.');
 }
