@@ -3,10 +3,25 @@ import { Connection, Repository } from 'typeorm';
 import { cacheable } from '@flowx/redis';
 ;import { ConfigEntity } from './config.mysql.entity';
 import { TUpdateInput } from './config.dto';
+import { DOMAIN } from '../../app.config';
 
 @injectable()
 export class ConfigService {
   @inject('MySQL') connection: Connection;
+
+  init(
+    repository: Repository<ConfigEntity>,
+    registries: string[],
+    scope: string[]
+  ) {
+    const configs = new ConfigEntity();
+    configs.close = false;
+    configs.domain = DOMAIN;
+    configs.loginType = 0;
+    configs.registries = JSON.stringify(registries);
+    configs.scopes = JSON.stringify(scope);
+    return repository.save(configs);
+  }
 
   async update(
     repository: Repository<ConfigEntity>,

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 import { DATABASE_NAME } from '../../app.config';
 
 @Entity({
@@ -37,6 +37,37 @@ export class ThirdpartyEntity {
     default: 2
   })
   checkTimeDelay: number;
+
+  @Column({
+    type: 'varchar',
+    length: 255
+  })
+  CorpId: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255
+  })
+  AppId: string;
+
+  @Column({
+    type: 'text',
+  })
+  icon: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255
+  })
+  AppSecret: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+    unique: true,
+    nullable: false,
+  })
+  code: string;
 
   @Column({
     type: 'datetime',
