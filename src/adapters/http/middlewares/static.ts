@@ -21,6 +21,7 @@ interface TStaticSendOptions {
   extensions?: string[],
   brotli?: boolean,
   gzip?: boolean,
+  fallback?: boolean,
   setHeaders?: (res: ServerResponse, key: string, value: fs.Stats) => void,
 }
 
@@ -36,6 +37,7 @@ export class HistoryStaticMiddleware<C extends Koa.ParameterizedContext<any, THt
       index: 'index.html',
       maxAge: 2 * 60 * 60 * 1000,
       gzip: true,
+      fallback: true,
     });
   }
 
@@ -52,6 +54,7 @@ export class HistoryStaticMiddleware<C extends Koa.ParameterizedContext<any, THt
     const brotli = opts.brotli !== false;
     const gzip = opts.gzip !== false;
     const setHeaders = opts.setHeaders;
+    const fallback = opts.fallback;
 
     if (setHeaders && typeof setHeaders !== 'function') {
       throw new TypeError('option setHeaders must be function')
@@ -116,7 +119,7 @@ export class HistoryStaticMiddleware<C extends Koa.ParameterizedContext<any, THt
       }
     } catch (err) {
       const notfound = ['ENOENT', 'ENAMETOOLONG', 'ENOTDIR'];
-      if (notfound.includes(err.code)) {
+      if (notfound.includes(err.code) && fallback) {
         path = resolve(opts.root, opts.index);
         if (!fs.existsSync(path)) throw createError(404, err);
         stats = await fs.stat(path);
