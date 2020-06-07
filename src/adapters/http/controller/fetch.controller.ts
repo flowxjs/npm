@@ -7,15 +7,18 @@ import { ConfigEntity } from '../../../modules/configs/config.mysql.entity';
 import { UserException } from '../exceptions/user.exception';
 import { PackageEntity } from '../../../modules/package/package.mysql.entity';
 import { PACKAGE_URI_MODE } from '../dto/package.router.enum';
+import { HistoryStaticMiddleware } from '../middlewares/static';
 import { 
   Controller, 
   useException, 
   Params, Get, Query,
-  NotFoundException
+  NotFoundException,
+  useMiddleware
 } from '@flowx/http';
 
 @Controller()
 @useException(UserException)
+@useMiddleware(HistoryStaticMiddleware)
 export class HttpFetchController {
   @inject('MySQL') private connection: Connection;
   @inject('Redis') private redis: TypeRedis;
