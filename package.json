@@ -1,6 +1,6 @@
 {
   "name": "@flowx/npm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node private package command-line interface",
   "scripts": {
     "dev": "ts-node src/index.ts --port=3000",
@@ -17,7 +17,7 @@
     "dist",
     "!npm.config.json"
   ],
-  "main": "app.bootstrap.js",
+  "main": "dist/app.bootstrap.js",
   "author": "cevio <evio@vip.qq.com>",
   "license": "MIT",
   "bugs": {
