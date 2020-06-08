@@ -40,3 +40,4 @@ packages/**/*.d.ts
 
 npm/packages
 logs
+npm.config.json

@@ -43,16 +43,27 @@ export class PackageService {
    * @param prefixes 
    * @param pathname 
    */
-  public async anyFetch(prefixes: string[], pathname: string) {
+  public async anyFetch(prefixes: string[], pathname: string, version?: string) {
     for (let i = 0; i < prefixes.length; i++) {
       const data = await this.fetch(prefixes[i], pathname);
       if (typeof data === 'object') return data;
       if (data && (data as string).charAt(0) === '{') {
         try {
-          return JSON.parse(data);
+          const result = JSON.parse(data);
+          if (!version) return result;
+          const tags = Object.keys(result['dist-tags']);
+          let currentVersion = version;
+          for (let i = 0; i < tags.length; i++) {
+            if (tags[i] === version) {
+              currentVersion = result['dist-tags'][version];
+              break;
+            }
+          }
+          if (result.versions[currentVersion]) return result.versions[currentVersion];
         } catch(e) {}
       }
     }
+    throw new NotFoundException('Not found');
   }
 
   /**

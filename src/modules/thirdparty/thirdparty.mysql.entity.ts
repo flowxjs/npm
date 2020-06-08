@@ -45,7 +45,7 @@ export class ThirdpartyEntity {
 
   @Column({
     type: 'varchar',
-    length: 255,
+    length: 100,
     unique: true,
     nullable: false,
   })

@@ -23,9 +23,7 @@ export class ConfigEntity {
   registries: string;
 
   @Column({
-    type: 'varchar',
-    length: 255,
-    default: 'http://127.0.0.1:3000'
+    type: 'text',
   })
   // 本服务域名
   domain: string;

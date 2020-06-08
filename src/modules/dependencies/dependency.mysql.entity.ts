@@ -34,7 +34,7 @@ export class DependencyEntity {
 
   @Column({
     type: 'varchar',
-    length: 255,
+    length: 101,
   })
   pathname: PackageEntity['pathname'];
 

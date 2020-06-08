@@ -1,12 +1,13 @@
 import Koa from 'koa';
 import { ServerResponse } from 'http';
-import { HttpMiddleware } from '@flowx/http';
+import { HttpMiddleware, NotFoundException } from '@flowx/http';
 import { THttpContext } from '../../../app.bootstrap';
 import { injectable } from 'inversify';
 import createError from 'http-errors';
 import { join, resolve, normalize, sep, parse, basename, extname } from 'path';
 import pathIsAbsolute from 'path-is-absolute';
 import fs from 'mz/fs';
+import { THEME } from '../../../app.config';
 
 const UP_PATH_REGEXP = /(?:^|[\\/])\.\.(?:[\\/]|$)/;
 
@@ -32,8 +33,9 @@ export class HistoryStaticMiddleware<C extends Koa.ParameterizedContext<any, THt
     const session = ctx.headers['npm-session'];
     const userAgent = ctx.headers['user-agent'];
     if (session || /npm\/\d+\.\d+\.\d+/.test(userAgent) || /node\/v\d+\.\d+\.\d+/.test(userAgent)) return await next();
+    if (!fs.existsSync(THEME)) throw new NotFoundException();
     await this.send(ctx, ctx.path, {
-      root: resolve(__dirname, '../../../../public'),
+      root: THEME,
       index: 'index.html',
       maxAge: 2 * 60 * 60 * 1000,
       gzip: true,

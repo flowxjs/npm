@@ -1,24 +1,29 @@
 {
-  "name": "typeservice-http-template",
+  "name": "@flowx/npm",
   "version": "1.0.0",
-  "description": "Http template for typeservice",
+  "description": "Node private package command-line interface",
   "scripts": {
-    "dev": "ts-node src/app.bootstrap.ts --port=3000",
+    "dev": "ts-node src/index.ts --port=3000",
     "build": "rm -rf dist && tsc -d",
-    "start": "pm2 start dist/app.bootstrap.js --name=typeservice-http-template -- --port=3000",
-    "stop": "pm2 stop typeservice-http-template",
-    "restart": "pm2 restart typeservice-http-template"
+    "start": "pm2 start dist/index.js --name=npm -- --port=3000",
+    "stop": "pm2 stop npm",
+    "restart": "pm2 restart npm"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/flowxjs/TypeService-Http-Template.git"
+    "url": "git+ssh://git@github.com/flowxjs/npm.git"
   },
+  "files": [
+    "dist",
+    "!npm.config.json"
+  ],
+  "main": "app.bootstrap.js",
   "author": "cevio <evio@vip.qq.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/flowxjs/TypeService-Http-Template/issues"
+    "url": "https://github.com/flowxjs/npm/issues"
   },
-  "homepage": "https://github.com/flowxjs/TypeService-Http-Template#readme",
+  "homepage": "https://github.com/flowxjs/npm#readme",
   "devDependencies": {
     "@types/fs-extra": "^9.0.1",
     "@types/koa": "^2.11.3",
@@ -33,7 +38,7 @@
   },
   "dependencies": {
     "@flowx/container": "^1.0.16",
-    "@flowx/http": "^1.0.22",
+    "@flowx/http": "^1.0.23",
     "@flowx/redis": "^1.0.12",
     "@flowx/typeorm": "^1.0.3",
     "@reactivex/rxjs": "^6.5.5",
@@ -58,21 +63,5 @@
     "sha1": "^1.1.1",
     "typeorm": "^0.2.25",
     "uuid": "^8.1.0"
-  },
-  "configs": {
-    "nfs": "npm/packages",
-    "domain": "http://127.0.0.1:3000",
-    "mysql": {
-      "host": "127.0.0.1",
-      "port": 3306,
-      "username": "root",
-      "password": "fdnsyj211314",
-      "database": "fppm"
-    },
-    "redis": {
-      "host": "127.0.0.1",
-      "port": 6379,
-      "memory": true
-    }
   }
 }

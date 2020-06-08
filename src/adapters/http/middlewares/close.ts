@@ -13,5 +13,7 @@ export async function WebsiteClosed(ctx: Context, next: Next) {
     throw e;
   });
   if (!configs.close) return await next();
-  throw new BadGatewayException('Sorry, this website is closed.');
+  const error = new BadGatewayException('Sorry, this website is closed.');
+  ctx.status = error.getStatus();
+  throw error;
 }

@@ -136,14 +136,21 @@ export class HttpFetchController {
       }
     }
 
-    if (!scope) return await this.PackageService.anyFetch(prefixes, pathname);
-    if (configs.scopes.indexOf('@' + scope) === -1) return await this.PackageService.anyFetch(prefixes, pathname);
+    if (!scope) return await this.PackageService.anyFetch(prefixes, pathname, version);
+    if (configs.scopes.indexOf('@' + scope) === -1) return await this.PackageService.anyFetch(prefixes, pathname, version);
     const local = await this.PackageService.info(packageRepository, '@' + scope, pkgname);
     if (local) {
       // http://127.0.0.1:3000/@node/find-my-way
       if (version) {
-        if (!local.versions[version]) throw new NotFoundException('找不到模块版本');
-        return local.versions[version];
+        let currentVersion = version;
+        const tags = Object.keys(local['dist-tags']);
+        for (let i = 0; i < tags.length; i++) {
+          if (tags[i] === version) {
+            currentVersion = local['dist-tags'][version];
+          }
+        }
+        if (!local.versions[currentVersion]) throw new NotFoundException('找不到模块版本');
+        return local.versions[currentVersion];
       }
       if (write) {
         // 如果使用write写入
@@ -151,6 +158,6 @@ export class HttpFetchController {
       }
       return local;
     } 
-    return await this.PackageService.anyFetch(prefixes, pathname);
+    return await this.PackageService.anyFetch(prefixes, pathname, version);
   }
 }

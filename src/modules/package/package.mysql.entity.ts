@@ -16,19 +16,19 @@ export class PackageEntity {
 
   @Column({
     type: 'varchar',
-    length: 100,
+    length: 50,
   })
   scope: string;
 
   @Column({
     type: 'varchar',
-    length: 255,
+    length: 50,
   })
   name: string;
 
   @Column({
     type: 'varchar',
-    length: 255,
+    length: 101,
     unique: true,
   })
   pathname: string;

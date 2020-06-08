@@ -23,54 +23,56 @@ import { UserEntity } from './modules/user/user.mysql.entity';
 
 // plugins:
 import { Setup as DingTalkSetup } from './plugins/dingtalk';
-import { PLUGINS } from './app.config';
+import { THIRDPARTIES } from './app.config';
 
 // import bodyParser from 'koa-bodyparser';
 
-const container = new TypeContainer();
-const http = new Http<THttpContext>(container);
-const orm = new TypeORM(container);
-
-// closed middleware.
-http.use(WebsiteClosed);
-
-// 安装 Redis
-SetupRedis(container);
-
-// 安装 MySQL
-SetupMySQL(container, orm);
-
-// Register Http Controllers:
-http.useController(HttpUserController);
-http.useController(HttpExtraController);
-http.useController(HttpTestController);
-http.useController(HttpPublishController);
-http.useController(HttpUnPublishController);
-http.useController(HttpTarBallController);
-http.useController(HttpFetchController);
-http.useController(HttpOwnerController);
-http.useController(HttpDistTagController);
-http.useController(HttpInitController);
-
-// install plugins:
-DingTalkSetup(http, PLUGINS.DINGTALK);
-
-// http.use(bodyParser());
-// http.use(async (ctx, next) => {
-//   const session = ctx.headers['npm-session'];
-//   const method = ctx.method;
-//   const pathname = ctx.request.path;
-//   const filename = require('path').resolve(process.cwd(), 'logs', `${session}:${method}:${pathname}.log`.replace(/\//g, '#'));
-//   if (['GET', 'DELETE'].indexOf(method) === -1) {
-//     require('fs').writeFileSync(filename, `Body: ${JSON.stringify(ctx.request.body, null, 2)}`, 'utf8');
-//   } else {
-//     require('fs').writeFileSync(filename, `Query: ${JSON.stringify(ctx.query, null, 2)}`, 'utf8');
-//   }
-//   await next();
-// });
-
-// Start All Service.
-container.bootstrap();
+export function BOOTSTRAP() {
+  const container = new TypeContainer();
+  const http = new Http<THttpContext>(container);
+  const orm = new TypeORM(container);
+  
+  // closed middleware.
+  http.use(WebsiteClosed);
+  
+  // 安装 Redis
+  SetupRedis(container);
+  
+  // 安装 MySQL
+  SetupMySQL(container, orm);
+  
+  // Register Http Controllers:
+  http.useController(HttpUserController);
+  http.useController(HttpExtraController);
+  http.useController(HttpTestController);
+  http.useController(HttpPublishController);
+  http.useController(HttpUnPublishController);
+  http.useController(HttpTarBallController);
+  http.useController(HttpFetchController);
+  http.useController(HttpOwnerController);
+  http.useController(HttpDistTagController);
+  http.useController(HttpInitController);
+  
+  // install plugins:
+  THIRDPARTIES.dingtalk && DingTalkSetup(http, THIRDPARTIES.dingtalk);
+  
+  // http.use(bodyParser());
+  // http.use(async (ctx, next) => {
+  //   const session = ctx.headers['npm-session'];
+  //   const method = ctx.method;
+  //   const pathname = ctx.request.path;
+  //   const filename = require('path').resolve(process.cwd(), 'logs', `${session}:${method}:${pathname}.log`.replace(/\//g, '#'));
+  //   if (['GET', 'DELETE'].indexOf(method) === -1) {
+  //     require('fs').writeFileSync(filename, `Body: ${JSON.stringify(ctx.request.body, null, 2)}`, 'utf8');
+  //   } else {
+  //     require('fs').writeFileSync(filename, `Query: ${JSON.stringify(ctx.query, null, 2)}`, 'utf8');
+  //   }
+  //   await next();
+  // });
+  
+  // Start All Service.
+  container.bootstrap();
+}
 
 export interface THttpContext extends THttpDefaultContext {
   authType?: string,
