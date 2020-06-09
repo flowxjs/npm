@@ -42,3 +42,35 @@ $ npc setup
 # test:
 $ npc view react
 ```
+
+## Ecology
+
+- [x] [npm-cli](https://github.com/flowxjs/npm-cli) 辅助的命令行工具
+- [x] [npm-template](https://github.com/flowxjs/npm-template) 快速安装的模板
+- [ ] [npm-web](https://github.com/flowxjs/npm-web) 主题
+
+## Setup
+
+首先克隆快速安装模板
+
+```bash
+$ git clone git@github.com:flowxjs/npm-template.git
+$ cd npm-template
+$ rm -rf .git
+```
+
+你需要修改项目下面的`npm.config.json`来配置数据库和redis。
+
+然后在你的本地电脑上通过辅助工具安装初始化：
+
+```bash
+$ npm i -g @flowx/npm-cli
+$ npc r # 输入你的服务域名地址
+$ npc setup # 按照流程进行
+```
+
+最后验证是否安装成功
+
+```bash
+$ npc view react
+```
