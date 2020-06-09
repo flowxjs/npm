@@ -59,7 +59,11 @@ $ cd npm-template
 $ rm -rf .git
 ```
 
-你需要修改项目下面的`npm.config.json`来配置数据库和redis。
+你需要修改项目下面的`npm.config.json`来配置数据库和redis。修改完毕后将程序上传至你的服务器，通过以下命令启动
+
+```bash
+$ npm start
+```
 
 然后在你的本地电脑上通过辅助工具安装初始化：
 
