@@ -1,5 +1,5 @@
 // Base imports:
-import { TypeContainer } from '@flowx/container';
+import { TypeContainer, TypeServiceInjection } from '@flowx/container';
 import { Http, THttpDefaultContext } from '@flowx/http';
 import { TypeORM } from '@flowx/typeorm';
 import { SetupMySQL } from './app.mysql';
@@ -23,7 +23,8 @@ import { UserEntity } from './modules/user/user.mysql.entity';
 
 // plugins:
 import { Setup as DingTalkSetup } from './plugins/dingtalk';
-import { THIRDPARTIES } from './app.config';
+import { THIRDPARTIES, THEME } from './app.config';
+import { HistoryStaticMiddleware } from './adapters/http/middlewares/static';
 
 // import bodyParser from 'koa-bodyparser';
 
@@ -69,6 +70,17 @@ export function BOOTSTRAP() {
   //   }
   //   await next();
   // });
+
+  http.whenNotFound(async ctx => {
+    const Static = TypeServiceInjection.get(HistoryStaticMiddleware);
+    await Static.send(ctx, ctx.path, {
+      root: THEME,
+      index: 'index.html',
+      maxAge: 2 * 60 * 60 * 1000,
+      gzip: true,
+      fallback: true,
+    });
+  });
   
   // Start All Service.
   container.bootstrap();
