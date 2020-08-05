@@ -17,6 +17,8 @@ import { HttpFetchController } from './adapters/http/controller/fetch.controller
 import { HttpOwnerController } from './adapters/http/controller/owner.controller';
 import { HttpDistTagController } from './adapters/http/controller/dist-tag.controller';
 import { HttpInitController } from './adapters/http/controller/init.controller';
+// web
+import { HttpPackageWebController } from './adapters/http/web/package.controller';
 
 // orm:
 import { UserEntity } from './modules/user/user.mysql.entity';
@@ -53,6 +55,7 @@ export function BOOTSTRAP() {
   http.useController(HttpOwnerController);
   http.useController(HttpDistTagController);
   http.useController(HttpInitController);
+  http.useController(HttpPackageWebController);
   
   // install plugins:
   THIRDPARTIES.dingtalk && DingTalkSetup(http, THIRDPARTIES.dingtalk);

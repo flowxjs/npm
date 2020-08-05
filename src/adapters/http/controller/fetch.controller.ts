@@ -112,7 +112,7 @@ export class HttpFetchController {
     return this.getPackage({ scope, pkgname, version }, write === 'true');
   }
 
-  private async getPackage(options: {scope?: string, pkgname: string, version?: string}, write: boolean) {
+  public async getPackage(options: {scope?: string, pkgname: string, version?: string}, write: boolean) {
     let pathname: string;
     const configRepository = this.connection.getRepository(ConfigEntity);
     const packageRepository = this.connection.getRepository(PackageEntity);

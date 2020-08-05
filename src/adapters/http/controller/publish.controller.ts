@@ -187,6 +187,13 @@ export class HttpPublishController {
       throw new BadRequestException(`size_wrong: Attachment size ${attachment.length} not match download size ${tarballBuffer.length}`);
     }
 
+    if (!pkg.versions[version].keywords) pkg.versions[version].keywords = [];
+
+    // if (!pkg.versions[version].homepage) throw new BadRequestException('请在模块的package.json中写入homepage，这是一个好的习惯。');
+    // if (!pkg.versions[version].repository) throw new BadRequestException('请在模块的package.json中写入repository，这是一个好的习惯，以便开发者能够定位到源码.');
+    // if (!pkg.versions[version].license) throw new BadRequestException('请在模块的package.json中写入license。');
+    if (!pkg.versions[version].keywords.length) throw new BadRequestException('请在模块的package.json中提供至少一个关键字。');
+
     // 创建 tarball 的 Buffer 流的 shasum 编码
     const shasum = this.createShasumCode(tarballBuffer);
 
@@ -252,12 +259,12 @@ export class HttpPublishController {
         user.id,
         PackageChunk.id,
         version,
-        JSON.stringify(pkg.versions[version].bugs),
-        pkg.description,
-        pkg.versions[version].homepage,
-        pkg.versions[version].license,
-        pkg.versions[version].readme,
-        JSON.stringify(pkg.versions[version].repository),
+        JSON.stringify(pkg.versions[version].bugs || {}),
+        pkg.description || 'no description',
+        pkg.versions[version].homepage || 'no homepage',
+        pkg.versions[version].license || 'MIT',
+        pkg.versions[version].readme || 'no readme',
+        JSON.stringify(pkg.versions[version].repository || {}),
         shasum,
         tarbalDBPath,
         pkg.versions[version].dist.integrity,
