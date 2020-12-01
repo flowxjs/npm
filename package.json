@@ -1,6 +1,6 @@
 {
   "name": "@flowx/npm",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Node private package command-line interface",
   "scripts": {
     "dev": "ts-node src/index.ts --port=3000",

@@ -36,7 +36,7 @@ export function BOOTSTRAP() {
   const orm = new TypeORM(container);
   
   // closed middleware.
-  http.use(WebsiteClosed);
+  // http.use(WebsiteClosed);
   
   // 安装 Redis
   SetupRedis(container);

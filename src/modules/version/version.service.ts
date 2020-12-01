@@ -72,6 +72,7 @@ export class VersionService {
     version.utime = new Date();
     version.bugs = bugs;
     version.code = code;
+    version.deprecated = '';
     version.rev = v4();
     version.attachment_size = size;
     const _version = await versionRepository.save(version);
